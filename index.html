@@ -1454,11 +1454,18 @@
         </div>
       </div>
 
-      <div class="card">
+      <div class="card" id="tiles-card">
         <div class="card-title">🌐 16-Tile Spatial Residue Waveguide Allocation (1-of-256 One-Hot Encoding)</div>
         <div id="tiles-container" class="tiles-grid">
           <!-- Populated by JS -->
         </div>
+      </div>
+
+      <div id="rns-math-panel" style="display:none; margin-top:1rem; padding:1rem 1.2rem; background:var(--card-bg,#0f1923); border:1px solid var(--card-border,rgba(0,242,254,0.15)); border-radius:10px;">
+        <div id="rns-math-panel-title" style="font-size:0.82rem; font-weight:700; color:var(--accent-cyan,#00f2fe); margin-bottom:0.6rem; letter-spacing:0.04em;">
+          🧮 Math Details
+        </div>
+        <pre id="rns-math-panel-steps" style="margin:0; font-family:Consolas,Monaco,'Courier New',monospace; font-size:0.76rem; color:var(--text-muted,#94a3b8); white-space:pre-wrap; line-height:1.55; max-height:340px; overflow-y:auto;"></pre>
       </div>
     </div>
 
@@ -4003,6 +4010,9 @@
         const mList = res.moduli_16 || res.moduli || [256, 251, 243, 241, 239, 233, 229, 227, 223, 211, 199, 197, 193, 191, 181, 179];
         const rList = res.residues_16 || res.residues || mList.map(m => 42 % m);
         renderTiles(mList, rList);
+
+        // --- Math Details panel (reconstruction) ---
+        renderMathPanel(res.crt_steps || [], 'CRT Step-by-Step Reconstruction');
       } catch (err) {
         console.error('evalInteger error:', err);
       }
@@ -4038,36 +4048,29 @@
           renderTiles(moduli, prodResidues, resA, resB, 'product');
         }
 
-        // --- Math Details panel ---
-        let mathPanel = document.getElementById('mult-math-panel');
-        if (!mathPanel) {
-          // Create panel once, insert after the tiles card
-          mathPanel = document.createElement('div');
-          mathPanel.id = 'mult-math-panel';
-          mathPanel.style.cssText = 'margin-top:1rem; padding:1rem 1.2rem; background:var(--card-bg,#0f1923); border:1px solid var(--card-border,rgba(0,242,254,0.15)); border-radius:10px;';
-          const tilesCard = document.querySelector('#tab-rns .card:nth-child(2)');
-          if (tilesCard && tilesCard.parentNode) {
-            tilesCard.parentNode.insertBefore(mathPanel, tilesCard.nextSibling);
-          } else {
-            // fallback: append inside #tab-rns
-            const rnsTab = document.getElementById('tab-rns');
-            if (rnsTab) rnsTab.appendChild(mathPanel);
-          }
-        }
-        const steps = res.crt_steps || [];
-        if (steps.length > 0) {
-          mathPanel.innerHTML = `
-            <div style="font-size:0.82rem; font-weight:700; color:var(--accent-cyan,#00f2fe); margin-bottom:0.6rem; letter-spacing:0.04em;">
-              🧮 Math Details — CRT Step-by-Step Reconstruction
-            </div>
-            <pre id="mult-math-steps" style="margin:0; font-family:Consolas,Monaco,'Courier New',monospace; font-size:0.76rem; color:var(--text-muted,#94a3b8); white-space:pre-wrap; line-height:1.55; max-height:340px; overflow-y:auto;">${steps.map(s => escapeHtml(s)).join('\n')}</pre>
-          `;
-          mathPanel.style.display = 'block';
-        } else {
-          mathPanel.style.display = 'none';
-        }
+        // --- Math Details panel (multiplication) ---
+        renderMathPanel(res.crt_steps || [], 'CRT Step-by-Step Reconstruction — Multiplication');
       } catch (err) {
         console.error('evalMultiply error:', err);
+      }
+    }
+
+    // Shared math-details panel used by both Decompose & Reconstruct (evalInteger)
+    // and Multiply (evalMultiply). The panel lives as a fixed element right after
+    // #tiles-card in the markup, so it always renders below the tile grid and
+    // never disturbs the .grid-2 layout above it.
+    function renderMathPanel(steps, headerText) {
+      const mathPanel = document.getElementById('rns-math-panel');
+      const titleEl = document.getElementById('rns-math-panel-title');
+      const stepsEl = document.getElementById('rns-math-panel-steps');
+      if (!mathPanel || !stepsEl) return;
+
+      if (steps.length > 0) {
+        if (titleEl) titleEl.textContent = `🧮 Math Details — ${headerText}`;
+        stepsEl.innerHTML = steps.map(s => escapeHtml(s)).join('\n');
+        mathPanel.style.display = 'block';
+      } else {
+        mathPanel.style.display = 'none';
       }
     }
 
