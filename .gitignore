@@ -51,3 +51,15 @@ ehthumbs.db
 .vscode/
 .idea/
 .vercel
+
+# Exclude heavy simulation outputs and artifacts
+janus_mini16_sim/output/
+janus_mini16_sim/orchestrator/artifacts/
+*.vtu
+*.geo
+*.dat
+*.names
+
+# Local execution scripts
+start_dashboard.vbs
+run_dashboard.py
