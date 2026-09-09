@@ -78,6 +78,7 @@ Janus Update/
 ├── index.html                                 # Main Production Single-Page Web Dashboard
 ├── vercel.json                                # Vercel deployment routing and cache headers
 ├── requirements.txt                           # Python environment dependencies
+├── run_dashboard.py                           # Dedicated zero-dependency local WSGI runner
 ├── start_dashboard.vbs                        # Background launcher script for Windows
 ├── JANUS_IEEE_Manuscript.pdf                  # Complete 37-page formally verified IEEE manuscript
 ├── JANUS_Mini16_Simulation_Report.pdf         # Multi-physics co-simulation sign-off report
@@ -85,10 +86,10 @@ Janus Update/
 ├── main.pdf                                   # Compiled root manuscript
 ├── deep-research-report.md                    # In-depth architectural synthesis research report
 │
-├── api/                                       # Serverless API Runtime (Vercel & Cloud)
+├── api/                                       # Serverless API Runtime (Vercel & Local WSGI)
 │   └── index.py                               # Unified REST API router & solver dispatcher
 │
-├── public/                                    # Vercel Static Distribution Directory
+├── public/                                    # Static Distribution Directory (CDN / Vercel)
 │   ├── index.html                             # Synced web interface for CDN hosting
 │   ├── JANUS_IEEE_Manuscript.pdf              # Hosted IEEE manuscript
 │   ├── JANUS_Mini16_Simulation_Report.pdf     # Hosted simulation report
@@ -97,9 +98,6 @@ Janus Update/
 │
 ├── janus_mini16_sim/                          # 5-Tier Multi-Physics Co-Simulation Framework
 │   ├── run_mini16_full_cosim.py               # Master CLI co-simulation test suite runner
-│   ├── run_dashboard.py                       # Local Flask/WSGI interactive dashboard server
-│   ├── start_dashboard.vbs                    # VBScript dashboard launcher
-│   ├── stop_dashboard.bat                     # Windows background task killer
 │   ├── AI_BENCHMARK_REPORT.md                 # Layer-by-layer AI benchmarking data report
 │   │
 │   ├── configs/                               # Hardware Constants & Architectural Specs
@@ -113,7 +111,6 @@ Janus Update/
 │   │   ├── sb2s3_tolerance_monte_carlo.py     # Fabrication tolerance Monte Carlo analysis
 │   │   ├── export_touchstone.py               # S-parameter Touchstone (.s4p) exporter
 │   │   ├── export_heat_map.py                 # Optical dissipation Q_opt(x,y,z) heat exporter
-│   │   ├── gds_layout_processor.py            # GDS-II layout verification utility
 │   │   └── test_tier1_all.py                  # Pytest automated test harness for Tier 1
 │   │
 │   ├── tier2_elmer_thermal/                   # TIER 2: 3D FEM Thermal & Heat Diffusion Solvers
@@ -121,7 +118,7 @@ Janus Update/
 │   │   ├── gmsh_mesh_generator.py             # 3D GMSH tetrahedral mesh generator
 │   │   ├── extract_thermal_rom.py             # Foster RC thermal reduced-order model (ROM)
 │   │   ├── case.sif / materials.sif           # Elmer FEM solver input configuration files
-│   │   ├── mini16_mesh.geo                    # Geometric CAD definition for 3D die stack
+│   │   ├── mini16_mesh.msh                    # 3D tetrahedral finite-element mesh
 │   │   └── test_tier2_all.py                  # Pytest automated test harness for Tier 2
 │   │
 │   ├── tier3_xyce_circuit/                    # TIER 3: Optoelectronic SPICE & APD Circuit Models
@@ -137,7 +134,11 @@ Janus Update/
 │   │   ├── rns_encoder.v                      # 100 GHz wave-pipelined 64b to 16-residue encoder
 │   │   ├── crt_adder_tree.v                   # 8-stage pipelined Mixed-Radix CRT adder tree
 │   │   ├── jir_fault_monitor.v                # Real-time residue consistency checker
+│   │   ├── janus_tier4_top.v                  # Top-level integrated Tier 4 digital subsystem
+│   │   ├── janus_moduli_params.vh             # Moduli parameters Verilog header
 │   │   ├── tb_crt_adder_tree.v                # Verilog testbench for CRT reconstruction
+│   │   ├── tb_audit_stress.v                  # Comprehensive stress & audit testbench
+│   │   ├── tb_jir_fault_injection.v           # Single-residue fault injection testbench
 │   │   ├── rtl_synthesis_analyzer.py          # Yosys synthesis parser and timing checker
 │   │   ├── test_crt_cocotb.py                 # Cocotb cycle-accurate Python co-simulation
 │   │   └── test_tier4_all.py                  # Pytest automated test harness for Tier 4
@@ -159,14 +160,11 @@ Janus Update/
 │   │   ├── test_orchestrator.py               # Orchestrator test suite
 │   │   └── artifacts/                         # Generated plots, CSVs, and JSON logs
 │   │
-│   ├── benchmarks/                            # AI Benchmarking & Profiling Scripts
-│   │   ├── run_ai_profiling.py                # Standalone AI workload evaluation runner
-│   │   ├── export_simulation_field_plots.py   # Visual wave & thermal field plot generator
-│   │   └── test_ai_profiling.py               # Benchmark test suite
-│   │
-│   └── dashboard/                             # Dashboard Backend & Local Assets
-│       ├── server.py                          # Flask application backend
-│       └── templates/index.html               # Synced local dashboard template
+│   └── benchmarks/                            # AI Benchmarking & Profiling Scripts
+│       ├── run_ai_profiling.py                # Standalone AI workload evaluation runner
+│       ├── export_simulation_field_plots.py   # Visual wave & thermal field plot generator
+│       ├── test_ai_profiling.py               # Benchmark test suite
+│       └── test_batch_packing.py              # Token packing validation harness
 │
 ├── documentation_reports/                     # Complete Engineering Specifications & Roadmaps
 │   ├── JANUS_MINI_16T_CO_SIMULATION_SPEC.pdf  # Comprehensive Multi-Physics Spec (PDF/MD/HTML)
@@ -324,12 +322,12 @@ pytest janus_mini16_sim/tier5_python_rns/test_tier5_all.py -v
 To launch the interactive dashboard on your local machine:
 ```bash
 # Option A: Standard Python runner
-python janus_mini16_sim/run_dashboard.py
+python run_dashboard.py
 
 # Option B: Windows background VBScript
 wscript start_dashboard.vbs
 ```
-Then open your browser to **`http://127.0.0.1:5000`**.
+Then open your browser to **`http://127.0.0.1:8080`**.
 
 ---
 

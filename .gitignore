@@ -1,16 +1,32 @@
-# Python
+# ==============================================================================
+# PROJECT JANUS: GITIGNORE CONFIGURATION
+# ==============================================================================
+
+# Python Environments & Bytecode
 __pycache__/
 *.py[cod]
-*.class
+*$py.class
 *.so
 .Python
 env/
 venv/
+.venv/
 .pytest_cache/
 .coverage
 htmlcov/
 
-# LaTeX temp files
+# Verilog, Icarus & EDA Simulation Artifacts
+*.vvp
+sim_build/
+tb_audit
+tb_crt
+tb_stress
+results.xml
+*.result.xml
+*.vcd
+*.fst
+
+# LaTeX Build Intermediates
 *.aux
 *.bbl
 *.blg
@@ -21,7 +37,17 @@ htmlcov/
 *.fls
 *.fdb_latexmk
 
-# OS
+# 3D Modeling & Animation Render Scratch
+*.blend1
+Janus Interactive Visulaization/renders/temp_cinematic_frames/
+Janus Interactive Visulaization/renders/test_seq/
+
+# Operating System & Editor Metadata
 .DS_Store
 Thumbs.db
+ehthumbs.db
+*.swp
+*.bak
+.vscode/
+.idea/
 .vercel
