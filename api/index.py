@@ -757,6 +757,7 @@ def app(environ, start_response):
         elif path == "/api/codebase":
             query = urllib.parse.parse_qs(environ.get("QUERY_STRING", ""))
             req_file = query.get("file", [None])[0]
+            debug_flag = query.get("debug", ["0"])[0] == "1"
 
             root_dir = BASE_DIR
             allowed_roots = [
@@ -769,19 +770,63 @@ def app(environ, start_response):
                 os.path.join(BASE_DIR, "documentation_reports"),
             ]
 
+            def _is_within(path_: str, root_: str) -> bool:
+                # Resolve symlinks and force a trailing separator so a sibling
+                # directory that merely shares a name prefix (e.g. "..._sim_old")
+                # can't slip past a plain startswith() check.
+                root_ = os.path.join(os.path.realpath(root_), "")
+                return os.path.realpath(path_).startswith(root_)
+
+            if debug_flag:
+                # One-shot diagnostic: confirms what's actually present on disk
+                # inside the deployed function container, independent of the
+                # allow-list / isfile logic below. Safe to leave in — it only
+                # ever lists directory names, never file contents.
+                info: Dict[str, Any] = {
+                    "BASE_DIR": BASE_DIR,
+                    "SIM_DIR": SIM_DIR,
+                    "sim_dir_exists": os.path.isdir(SIM_DIR),
+                }
+                try:
+                    info["base_dir_listing"] = sorted(os.listdir(BASE_DIR))
+                except Exception as e:
+                    info["base_dir_listing_error"] = str(e)
+                if os.path.isdir(SIM_DIR):
+                    try:
+                        info["sim_dir_listing"] = sorted(os.listdir(SIM_DIR))
+                    except Exception as e:
+                        info["sim_dir_listing_error"] = str(e)
+                    for tier in [
+                        "tier1_meep_optics", "tier2_elmer_thermal",
+                        "tier3_xyce_circuit", "tier4_rtl_digital",
+                        "tier5_python_rns",
+                    ]:
+                        tier_path = os.path.join(SIM_DIR, tier)
+                        try:
+                            info[f"{tier}_listing"] = (
+                                sorted(os.listdir(tier_path))
+                                if os.path.isdir(tier_path) else None
+                            )
+                        except Exception as e:
+                            info[f"{tier}_listing_error"] = str(e)
+                else:
+                    info["sim_dir_listing"] = None
+                return json_response(start_response, info)
+
             if req_file:
                 safe_rel = os.path.normpath(req_file).lstrip("/\\")
                 target_path = os.path.abspath(os.path.join(root_dir, safe_rel))
-                if not any(target_path.startswith(ar) for ar in allowed_roots) or not os.path.isfile(target_path):
-                    return json_response(start_response, {"error": "File not found or access denied"}, status="404 Not Found")
+                if not any(_is_within(target_path, ar) for ar in allowed_roots) or not os.path.isfile(target_path):
+                    return json_response(start_response, {"error": "File not found or access denied", "resolved_path": target_path}, status="404 Not Found")
                 try:
                     with open(target_path, "r", encoding="utf-8", errors="replace") as f:
                         code_text = f.read()
                     ext = os.path.splitext(target_path)[1].lower()
                     lang_map = {
-                        ".py": "python", ".v": "verilog", ".sv": "systemverilog",
+                        ".py": "python", ".v": "verilog", ".vh": "verilog", ".sv": "systemverilog",
                         ".json": "json", ".html": "html", ".css": "css", ".js": "javascript",
-                        ".tex": "latex", ".md": "markdown"
+                        ".tex": "latex", ".md": "markdown", ".sif": "yaml", ".cir": "spice",
+                        ".sdc": "tcl", ".ys": "tcl", ".xml": "xml", ".txt": "text"
                     }
                     return json_response(start_response, {
                         "file": safe_rel.replace("\\", "/"),

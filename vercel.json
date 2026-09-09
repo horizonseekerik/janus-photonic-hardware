@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "api/index.py": {
+      "includeFiles": "janus_mini16_sim/**"
+    }
+  },
   "headers": [
     {
       "source": "/(.*)\\.pdf",
