@@ -394,7 +394,7 @@ class JanusMasterOrchestrator:
 
         # 5. RRNS Fault Self-Healing Engine (Algorithm 5E)
         rrns_engine = RRNSSelfHealingEngine()
-        rrns_res = rrns_engine.run_fault_injection_trials(N_trials=500, error_probability=0.30)
+        rrns_res = rrns_engine.run_fault_injection_trials(N_trials=2000, error_probability=0.30)
 
         # 6. Bit-Exact GEMM Precision Benchmarks (Algorithm 5F)
         gemm_res = run_gemm_precision_benchmark(N_dim=8, precisions=[4, 8, 16, 32, 64])
@@ -425,7 +425,10 @@ class JanusMasterOrchestrator:
                 if isinstance(val, bool):
                     val_str = str(val)
                 elif isinstance(val, float):
-                    val_str = f"{val:.4g}"
+                  if id == 15:
+                      val_str = f"{val * 100:.1f}%"
+                  else:
+                      val_str = f"{val:.4g}"
                 else:
                     val_str = str(val)
             self.checks.append(
@@ -591,7 +594,7 @@ class JanusMasterOrchestrator:
             self.tier5_results["formal_res"] = run_formal_verification()
         elif check_id == 15:
             rrns_engine = RRNSSelfHealingEngine()
-            self.tier5_results["rrns_res"] = rrns_engine.run_fault_injection_trials(N_trials=500, error_probability=0.30)
+            self.tier5_results["rrns_res"] = rrns_engine.run_fault_injection_trials(N_trials=2000, error_probability=0.30)
         elif check_id == 16:
             self.tier5_results["gemm_res"] = run_gemm_precision_benchmark(N_dim=8, precisions=[4, 8, 16, 32, 64])
 
