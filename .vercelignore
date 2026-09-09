@@ -1,0 +1,12 @@
+janus_mini16_sim/
+Janus Interactive Visulaization/
+*.vtu
+*.geo
+*.msh
+*.dat
+*.names
+*.h5
+*.npy
+*.s4p
+start_dashboard.vbs
+run_dashboard.py
