@@ -706,12 +706,12 @@
 <td style="text-align: left;">Total spatial waveguides (N_m x N)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>S_benes</code></td>
+<td style="text-align: left;"><code>S_tree</code></td>
 <td style="text-align: left;">S</td>
 <td style="text-align: left;">15</td>
 <td style="text-align: left;">stages</td>
 <td style="text-align: left;">T1, T5</td>
-<td style="text-align: left;">Benes switching stages (2*log2(256) - 1)</td>
+<td style="text-align: left;">Asymmetric 16-Tree switching stages (log2(16))</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>N_switch_per_mult</code></td>
@@ -724,7 +724,7 @@
 <tr>
 <td style="text-align: left;"><code>N_switch_total</code></td>
 <td style="text-align: left;">N_sw</td>
-<td style="text-align: left;">31,457,280</td>
+<td style="text-align: left;">3,932,160</td>
 <td style="text-align: left;">dimensionless</td>
 <td style="text-align: left;">T1, T2</td>
 <td style="text-align: left;">Total GST-467 switch cells (~31.46 M)</td>
@@ -1778,20 +1778,20 @@
 <td style="text-align: left;">Total MMI excess loss (13 x 0.30)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>L_benes_per_stage</code></td>
+<td style="text-align: left;"><code>L_tree_per_stage</code></td>
 <td style="text-align: left;">L_B</td>
 <td style="text-align: left;">0.50</td>
 <td style="text-align: left;">dB/stage</td>
 <td style="text-align: left;">T1</td>
-<td style="text-align: left;">Dilated Benes routing loss per stage</td>
+<td style="text-align: left;">16-Tree Fermat Core routing loss per stage</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>L_benes_total</code></td>
+<td style="text-align: left;"><code>L_tree_total</code></td>
 <td style="text-align: left;">L_B,tot</td>
 <td style="text-align: left;">7.50</td>
 <td style="text-align: left;">dB</td>
 <td style="text-align: left;">T1</td>
-<td style="text-align: left;">Total 15-stage Benes loss (15 x 0.50)</td>
+<td style="text-align: left;">Total 4-stage 16-Tree loss (4 x 0.40 dB)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>L_propagation_coupling</code></td>
@@ -1807,7 +1807,7 @@
 <td style="text-align: left;">12.90</td>
 <td style="text-align: left;">dB</td>
 <td style="text-align: left;">T1</td>
-<td style="text-align: left;">Total excess path loss (MMI + Benes + prop)</td>
+<td style="text-align: left;">Total excess path loss (MMI + 16-Tree + prop)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>L_distribution_total</code></td>
@@ -1826,12 +1826,12 @@
 <td style="text-align: left;">GST-467 switch cell insertion loss (a-GST state)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>ER_dilated_benes</code></td>
+<td style="text-align: left;"><code>ER_pcm_switch</code></td>
 <td style="text-align: left;">ER</td>
 <td style="text-align: left;">25.0</td>
 <td style="text-align: left;">dB</td>
 <td style="text-align: left;">T1</td>
-<td style="text-align: left;">Dilated Benes extinction ratio (minimum)</td>
+<td style="text-align: left;">PCM switch extinction ratio (minimum)</td>
 </tr>
 </tbody>
 </table>
@@ -2002,12 +2002,12 @@
 <td style="text-align: left;">Inter-pulse guard margin (ISI isolation)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>t_opt_benes</code></td>
+<td style="text-align: left;"><code>t_opt_tree</code></td>
 <td style="text-align: left;">t_opt</td>
 <td style="text-align: left;">750 x 10^-12</td>
 <td style="text-align: left;">s</td>
 <td style="text-align: left;">T1</td>
-<td style="text-align: left;">15-stage Benes optical propagation delay (750 ps)</td>
+<td style="text-align: left;">4-stage 16-Tree optical propagation delay (1.33 ps)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>t_crt</code></td>
@@ -2558,7 +2558,7 @@
 <td style="text-align: left;">16,384 x 256 spatial channels</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>Benes Switching Stages (S)</strong></td>
+<td style="text-align: left;"><strong>Asymmetric 16-Tree Switching Stages (S)</strong></td>
 <td style="text-align: left;">15 stages</td>
 <td style="text-align: left;">2*log2(256) - 1 universal topology</td>
 </tr>
@@ -2569,7 +2569,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>Total GST-467 Switch Cells</strong></td>
-<td style="text-align: left;"><strong>31,457,280</strong></td>
+<td style="text-align: left;"><strong>3,932,160</strong></td>
 <td style="text-align: left;">~31.46 Million non-volatile cells (0 W hold)</td>
 </tr>
 <tr>
@@ -2685,7 +2685,7 @@
 </ol>
 <h4 id="b-extracted-deliverables">B. Extracted Deliverables</h4>
 <ul>
-<li><strong>Scattering Matrix (Touchstone <code>.s4p</code> format):</strong> Insertion loss (IL_switch_cell &lt;= 0.10 dB), extinction ratio (ER_dilated_benes &gt;= 25 dB), phase response, and group delay.</li>
+<li><strong>Scattering Matrix (Touchstone <code>.s4p</code> format):</strong> Insertion loss (IL_switch_cell &lt;= 0.10 dB), extinction ratio (ER_pcm_switch &gt;= 25 dB), phase response, and group delay.</li>
 <li><strong>Volumetric Heat Density Map (Q_opt(x,y,z)):</strong> Exported to HDF5 grid using the formula:<br />
   Q_opt(x,y,z) = (1/2) * omega_optical * epsilon_0 * Im[eps_r(x,y,z)] * |E(x,y,z)|^2</li>
 </ul>
@@ -2742,7 +2742,7 @@
 <h4 id="a-core-python-modules">A. Core Python Modules</h4>
 <ol>
 <li><strong><code>moduli_generator.py</code>:</strong> Generates coprime sets M = {m_1, ..., m_16} with m_i &lt;= m_max=256, satisfying dynamic range prod(m_i) &gt; 2^64.</li>
-<li><strong><code>formal_verifier.py</code>:</strong> Uses the <strong>Z3 SMT Solver</strong> to mathematically prove that finite field multiplication in Z_(m_i) is isomorphic to the Benes permutation states without edge-case failures.</li>
+<li><strong><code>formal_verifier.py</code>:</strong> Uses the <strong>Z3 SMT Solver</strong> to mathematically prove that finite field multiplication in Z_(m_i) is isomorphic to the 4-stage binary tree routing states without edge-case failures.</li>
 <li><strong><code>one_hot_router.py</code>:</strong> Simulates spatial 1-hot tensor contractions (N_dim=32 x 32 matrices across N_tiles=16 tiles) with zero floating-point rounding.</li>
 <li><strong><code>jir_scheduler.py</code>:</strong> Emulates microsecond-level closed-loop tile temperature tracking using the Elmer thermal ROM matrix, executing dynamic tile rotation within tau_jir=5 us.</li>
 <li><strong><code>rrns_fault_engine.py</code>:</strong> Injects stochastic physical bit errors (from Xyce BER models) and executes single-channel residue projection self-healing with N_rrns_redundant=2 redundant channels.</li>
@@ -2766,8 +2766,8 @@
 <td style="text-align: left;"><strong>PASS if IL &lt;= 0.10 dB</strong></td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>Dilated Benes Extinction Ratio</strong></td>
-<td style="text-align: left;">ER_dilated_benes &gt;= 25.0 dB</td>
+<td style="text-align: left;"><strong>PCM Switch Extinction Ratio</strong></td>
+<td style="text-align: left;">ER_pcm_switch &gt;= 25.0 dB</td>
 <td style="text-align: left;"><strong>PASS if ER &gt;= 25.0 dB</strong></td>
 </tr>
 <tr>
@@ -2852,7 +2852,7 @@
 +-- tier5_python_rns/
 |   +-- moduli_generator.py           # 16-channel coprime dynamic range
 |   +-- formal_verifier.py            # Z3 SMT formal proof
-|   +-- spatial_one_hot_router.py     # 15-stage Benes tensor contraction
+|   +-- spatial_one_hot_router.py     # 4-stage 16-Tree Fermat Core tensor contraction
 |   +-- jir_thermal_scheduler.py      # Microsecond tile rotation engine
 |   +-- rrns_self_healing.py          # Single-fault parity recovery
 |   +-- gemm_exact_benchmark.py       # Bit-exact GEMM validation vs FP32/INT64

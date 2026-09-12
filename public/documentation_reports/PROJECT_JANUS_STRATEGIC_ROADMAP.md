@@ -31,10 +31,10 @@ All models operate under **100 GHz wave-pipelined optical cycling** (T_cycle = 1
 
 | Model ID | Generation & Stack Architecture | SiPh Strata | Tile Count (N_tiles) | Matrix Mesh per Tile | Total Multipliers | Total Non-Volatile Switches | Total APD Detectors | Die Area (A_die) | Master Laser (Opt / Elec) | Total System Electrical Power | Sustained INT4 Throughput | Sustained INT64 Throughput | Sustained INT4 / INT64 Efficiency | Effective Yield / Wafer (Set) |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **1A** | Gen-1 Monolithic Planar MVP | 1 Stratum | 16 | 32 × 32 | 16,384 | 31,457,280 (31.46M) | 4,194,304 (4.19M) | 100.00 mm² | 2.21 W / 2.95 W | **6.17 W** | 1,392.6 TMAC/s | 87.0 TMAC/s | 225.7 / 14.1 TMAC/s/W | 512 Functional / Wf |
+| **1A** | Gen-1 Monolithic Planar MVP | 1 Stratum | 16 | 32 × 32 | 16,384 | 3,932,160 (3.93M) | 278,528 (0.28M) | 100.00 mm² | 2.21 W / 2.95 W | **6.17 W** | 1,392.6 TMAC/s | 87.0 TMAC/s | 225.7 / 14.1 TMAC/s/W | 512 Functional / Wf |
 | **1B** | Gen-1 Monolithic Planar Full | 1 Stratum | 32 | 32 × 32 | 32,768 | 62,914,560 (62.91M) | 8,388,608 (8.39M) | 200.00 mm² | 4.74 W / 6.31 W | **12.67 W** (13.03 W nom.) | 2,785.3 TMAC/s | 174.1 TMAC/s | 219.7 / 13.7 TMAC/s/W | 232 Functional / Wf |
 | **2A** | Gen-2 Monolithic Planar Edge | 1 Stratum | 16 | 64 × 64 | 65,536 | 125,829,120 (125.83M) | 16,777,216 (16.78M) | 400.00 mm² | 10.15 W / 13.53 W | **23.49 W** | 5,570.6 TMAC/s | 348.2 TMAC/s | 237.1 / 14.8 TMAC/s/W | 114 Functional / Wf |
-| **2B** | Gen-2 3D Mini Stack (50 mm²) | 2 Strata | 16 | 32 × 32 | 16,384 | 31,457,280 (31.46M) | 4,194,304 (4.19M) | 50.00 mm² | 2.21 W / 2.95 W | **6.17 W** | 1,392.6 TMAC/s | 87.0 TMAC/s | 225.7 / 14.1 TMAC/s/W | ≈ 512 / 3-Wafer Set |
+| **2B** | Gen-2 3D Mini Stack (50 mm²) | 2 Strata | 16 | 32 × 32 | 16,384 | 3,932,160 (1.97M / stratum) | 278,528 (0.28M on Stratum 2) | 50.00 mm² | 2.21 W / 2.95 W | **6.17 W** | 1,392.6 TMAC/s | 87.0 TMAC/s | 225.7 / 14.1 TMAC/s/W | ≈ 512 / 3-Wafer Set |
 | **2C** | Gen-2 3D Mini Stack (100 mm²)| 2 Strata | 32 | 32 × 32 | 32,768 | 62,914,560 (62.91M) | 8,388,608 (8.39M) | 100.00 mm² | 4.74 W / 6.31 W | **12.67 W** (13.03 W nom.) | 2,785.3 TMAC/s | 174.1 TMAC/s | 219.7 / 13.7 TMAC/s/W | ≈ 240 / 3-Wafer Set |
 | **3A** | Gen-3 3D Mini Stack (200 mm²)| 2 Strata | 64 | 32 × 32 | 65,536 | 125,829,120 (125.83M) | 16,777,216 (16.78M) | 200.00 mm² | 10.15 W / 13.53 W | **23.49 W** | 5,570.6 TMAC/s | 348.2 TMAC/s | 237.1 / 14.8 TMAC/s/W | ≈ 116 / 3-Wafer Set |
 | **3B** | Gen-3 3D Edge Stack (200 mm²)| 2 Strata | 16 | 64 × 64 | 65,536 | 125,829,120 (125.83M) | 16,777,216 (16.78M) | 200.00 mm² | 10.15 W / 13.53 W | **23.49 W** | 5,570.6 TMAC/s | 348.2 TMAC/s | 237.1 / 14.8 TMAC/s/W | ≈ 116 / 3-Wafer Set |
@@ -101,7 +101,7 @@ Generation 1 is the **Alpha Minimum Viable Product (MVP)** family. By consolidat
 ```
 
 ### Hybrid Memory-Optical PRNS & 3-Equation 64-Bit Decomposition Engine
-To eliminate dynamic range overflow and precision collapse in 64-bit integer matrix multiplications without increasing waveguide count beyond 256 or altering 15-stage Beneš network symmetry, JANUS employs a **Hybrid Memory-Optical PRNS** architecture governed by **Hybrid Partitioning** (Optics exclusively performs $1 \times 1$ element-wise multiplications, while accumulation occurs in CMOS).
+To eliminate dynamic range overflow and precision collapse in 64-bit integer matrix multiplications while maximizing optical efficiency and eliminating high-loss crossbars, JANUS employs a **Hybrid Memory-Optical PRNS** architecture governed by **Hybrid Partitioning** (Optics exclusively performs $1 \times 1$ element-wise multiplications in non-volatile Asymmetric 16-Tree Fermat cores, while accumulation occurs in CMOS).
 
 * **32-Bit Word Decomposition:** Operands $X, Y \in [0, 2^{64}-1]$ are split into 32-bit halves: $X = X_H \cdot 2^{32} + X_L, Y = Y_H \cdot 2^{32} + Y_L$.
 * **Three-Equation Formulation:** Matrix multiplication decomposes into three distinct operations:
@@ -148,19 +148,19 @@ Model 1A is the primary silicon tapeout vehicle: a compact 100 mm² monolithic a
 * **Tile Matrix Dimension (N_dim):** 32 × 32 matrix mesh per tile
 * **Multiplier Count per Tile:** 32² = 1,024 optical multipliers
 * **Total Multipliers on Die:** 16 × 1,024 = **16,384 multipliers**
-* **Waveguide Alphabet per Multiplier:** 256 waveguides (One-Hot 8-bit residue representation)
-* **Total Spatial Waveguide Channels:** 16,384 × 256 = **4,194,304 channels**
-* **Beneš Routing Stages (S):** 2·log₂(256) - 1 = **15 stages** (universal)
-* **Switches per Multiplier Fabric:** (256/2) × 15 = 128 × 15 = **1,920 switches**
-* **Total Non-Volatile Sb2S3 Switches:** 16,384 × 1,920 = **31,457,280 switches** (≈ 31.46 Million)
-* **Terminal Ge/Si SAC²M APD Pixels:** 16,384 × 256 = **4,194,304 detectors** (≈ 4.19 Million)
-* **Active Detectors per 10 ps Cycle:** 16,384 active events (1-in-256 spatial sparsity; 8,192 illuminated per 5 ps phase)
+* **Waveguide Alphabet per Multiplier:** 17 waveguides (Fermat Z_17: 16 active + 1 dark/ref)
+* **Total Spatial Waveguide Channels:** 16,384 × 17 = **278,528 channels**
+* **Optical Switching Stages (S):** 4 stages (log2(16) binary tree topology)
+* **Switches per Multiplier Fabric:** 240 switches (16 binary trees × 15 switches)
+* **Total Non-Volatile Sb2S3 Switches:** 16,384 × 240 = **3,932,160 switches** (≈ 3.93 Million)
+* **Terminal Ge/Si SAC²M APD Pixels:** 16,384 × 17 = **278,528 detectors** (≈ 0.28 Million)
+* **Active Detectors per 10 ps Cycle:** 16,384 active events (1-in-17 spatial sparsity; 8,192 illuminated per 5 ps phase)
 
 #### 2. Physical Layout & Area Budget (10.0 mm × 10.0 mm)
 
 | Functional Component Block | Unit Dimension | Physical Area (mm²) |
 | :--- | :--- | :--- |
-| **1. Non-Volatile PCM Switch Cells (31.46M units)** | 1.35 µm² (relaxed) | 42.47 mm² |
+| **1. Non-Volatile PCM Switch Cells (3.93M units)** | 1.35 µm² (relaxed) | 5.31 mm² |
 | **2. In-Plane Routing Shuffles & Crossing Matrices** | Low-crosstalk MMI | 20.20 mm² |
 | **3. Active 1×256 LiTaO₃ Input Routers (16,384 units)** | 1.15 mm² / router | 18.84 mm² |
 | **4. Master Laser 1:8,192 MMI Distribution H-Tree** | Low-loss 13 stages | 4.50 mm² |
@@ -170,7 +170,7 @@ Model 1A is the primary silicon tapeout vehicle: a compact 100 mm² monolithic a
 
 #### 3. Optical Link Budget & Laser Requirement (1064 nm)
 * **Passive Split Tree (13 stages of 1:2 MMIs for 8,192 branches):** L_split,ideal = 10·log₁₀(2¹³) = **39.13 dB**
-* **Excess Component Loss (L_excess):** 13 × 0.30 dB (MMIs) + 7.50 dB (Beneš) + 1.50 dB (Prop/Cpl) = **12.90 dB**
+* **Excess Component Loss (L_excess):** 13 × 0.30 dB (MMIs) + 1.61 dB (16-Tree) + 1.50 dB (Prop/Cpl) = **7.01 dB**
 * **Total Optical Distribution Loss (L_total):** 39.13 dB + 12.90 dB = **52.03 dB**
 * **Delivered Receiver Power (P_det):** **-18.59 dBm** (13.84 µW)
 * **Receiver Practical Sensitivity (P_sens):** **-23.20 dBm** (4.79 µW @ BER = 10⁻¹⁸)
@@ -375,7 +375,7 @@ Generation 2 introduces two critical evolutionary paths:
 * **Residue Tile Count (N_tiles):** 16 independent optical residue tiles
 * **Tile Matrix Dimension (N_dim):** 32 × 32 matrix mesh per tile
 * **Total Multipliers on Die:** 16 × 1,024 = **16,384 multipliers**
-* **Total Non-Volatile Sb2S3 Switches:** **31,457,280 switches** (15.73M per stratum)
+* **Total Non-Volatile Sb2S3 Switches:** **3,932,160 switches** (1.97M per stratum)
 * **Terminal Ge/Si APD Pixels:** **4,194,304 detectors** on Stratum 2
 * **SiPh Strata Count:** 2 Strata (30 µm each) + 50 µm Inter-Stratum SiO₂ Buffer
 

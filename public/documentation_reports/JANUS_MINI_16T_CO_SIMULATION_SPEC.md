@@ -131,17 +131,17 @@ All simulation parameters defined in this section are **immutable constants** sh
 | `N_dim` | N_d | 32 | dimensionless | All | Matrix dimension per tile (32 x 32 mesh) |
 | `N_mult_per_tile` | N_m/t | 1,024 | dimensionless | All | Multipliers per tile (N_d^2 = 32^2) |
 | `N_mult_total` | N_m | 16,384 | dimensionless | All | Total optical multipliers (N_t x N_m/t) |
-| `N_alphabet` | N | 256 | dimensionless | T1, T5 | Waveguide alphabet per multiplier (1-Hot 8-bit) |
-| `N_alphabet_bits` | b | 8 | bits | T4, T5 | Bit-width of spatial alphabet (log2(256)) |
-| `N_wg_total` | N_wg | 4,194,304 | dimensionless | T1 | Total spatial waveguides (N_m x N) |
-| `S_benes` | S | 15 | stages | T1, T5 | Benes switching stages (2*log2(256) - 1) |
-| `N_switch_per_mult` | N_sw/m | 1,920 | dimensionless | T1, T5 | Switches per multiplier fabric ((N/2) x S) |
-| `N_switch_total` | N_sw | 31,457,280 | dimensionless | T1, T2 | Total Sb2S3 switch cells (~31.46 M) |
-| `N_apd_total` | N_det | 4,194,304 | dimensionless | T3 | Total SAC2M Ge/Si APD detectors (~4.19 M) |
+| `N_alphabet` | N | 17 | dimensionless | T1, T5 | Waveguide alphabet per multiplier (Fermat Z_17: 16 active + 1 dark/ref) |
+| `N_alphabet_bits` | b | 5 | bits | T4, T5 | Bit-width of spatial alphabet (ceil(log2(17))) |
+| `N_wg_total` | N_wg | 278,528 | dimensionless | T1 | Total spatial waveguides (N_m x 17) |
+| `S_tree` | S | 4 | stages | T1, T5 | Asymmetric 16-Tree switching stages (log2(16)) |
+| `N_switch_per_mult` | N_sw/m | 240 | dimensionless | T1, T5 | Switches per multiplier fabric (16 trees x 15 switches) |
+| `N_switch_total` | N_sw | 3,932,160 | dimensionless | T1, T2 | Total Sb2S3 switch cells (~3.93 M, zero static hold) |
+| `N_apd_total` | N_det | 278,528 | dimensionless | T3 | Total SAC2M Ge/Si APD detectors (17 per multiplier) |
 | `N_active_per_cycle` | N_act | 16,384 | dimensionless | T1, T3, T5 | Active photons per 10 ps cycle |
 | `N_active_per_phase` | N_ph | 8,192 | dimensionless | T1, T3 | Active photons per 5 ps half-cycle phase |
-| `alpha_spatial` | alpha_s | 1/256 | dimensionless | T3, T5 | Spatial activity factor (1-in-N sparsity) |
-| `alpha_spatial_decimal` | alpha_s | 0.00390625 | dimensionless | T3, T5 | Decimal spatial activity factor |
+| `alpha_spatial` | alpha_s | 1/17 | dimensionless | T3, T5 | Spatial activity factor (1-in-17 sparsity) |
+| `alpha_spatial_decimal` | alpha_s | 0.0588235 | dimensionless | T3, T5 | Decimal spatial activity factor |
 
 ---
 
@@ -339,13 +339,13 @@ All simulation parameters defined in this section are **immutable constants** sh
 | `L_split_ideal` | L_sp,tot | 39.13 | dB | T1 | Total ideal passive splitting loss (13 x 3.0103) |
 | `L_mmi_excess_per_stage` | L_MMI | 0.30 | dB/stage | T1 | MMI excess insertion loss per stage |
 | `L_mmi_excess_total` | L_MMI,tot | 3.90 | dB | T1 | Total MMI excess loss (13 x 0.30) |
-| `L_benes_per_stage` | L_B | 0.50 | dB/stage | T1 | Dilated Benes routing loss per stage |
-| `L_benes_total` | L_B,tot | 7.50 | dB | T1 | Total 15-stage Benes loss (15 x 0.50) |
+| `L_tree_per_stage` | L_tree | 0.40 | dB/stage | T1 | 16-Tree Fermat Core routing loss per stage |
+| `L_tree_total` | L_tree,tot | 1.61 | dB | T1 | Total 4-stage 16-Tree loss (4 x 0.40 dB) |
 | `L_propagation_coupling` | L_prop | 1.50 | dB | T1 | Waveguide propagation & interlayer coupling |
-| `L_excess_total` | L_ex | 12.90 | dB | T1 | Total excess path loss (MMI + Benes + prop) |
-| `L_distribution_total` | L_tot | 52.03 | dB | T1, T3 | Total end-to-end distribution loss (ideal + excess) |
+| `L_excess_total` | L_ex | 7.01 | dB | T1 | Total excess path loss (MMI + 16-Tree + prop) |
+| `L_distribution_total` | L_tot | 46.14 | dB | T1, T3 | Total end-to-end distribution loss (ideal + excess) |
 | `IL_switch_cell` | IL_sw | 0.10 | dB/cell | T1 | Sb2S3 switch cell insertion loss (a-Sb2S3 state) |
-| `ER_dilated_benes` | ER | 25.0 | dB | T1 | Dilated Benes extinction ratio (minimum) |
+| `ER_pcm_switch` | ER | 25.0 | dB | T1 | PCM switch extinction ratio (minimum) |
 
 ---
 
@@ -377,7 +377,7 @@ All simulation parameters defined in this section are **immutable constants** sh
 | `t_pd` | t_PD | 1.52 x 10^-12 | s | T3 | Photodetector carrier clearance (1.52 ps) |
 | `t_wire` | t_wire | 1.33 x 10^-12 | s | T3, T4 | Electrical wire interconnect delay (L_wire/v_e) |
 | `t_guard` | t_guard | 3.5 x 10^-12 | s | T1, T3 | Inter-pulse guard margin (ISI isolation) |
-| `t_opt_benes` | t_opt | 750 x 10^-12 | s | T1 | 15-stage Benes optical propagation delay (750 ps) |
+| `t_opt_tree` | t_opt | 1.33 x 10^-12 | s | T1 | 4-stage 16-Tree optical propagation delay (1.33 ps) |
 | `t_crt` | t_CRT | 210 x 10^-12 | s | T4 | CRT adder-tree accumulation delay (210 ps) |
 | `N_crt_pipeline_stages` | S_CRT | 4 | stages | T4 | CRT pipelined adder tree stage count |
 | `T_latency_total` | T_lat | 963 x 10^-12 | s | T1-T4 | Total end-to-end single-op latency (963 ps) |
@@ -484,13 +484,13 @@ The simulation suite strictly targets the verified hardware parameters of the **
 | **Tile Matrix Mesh (N_dim)** | 32 x 32 | Matrix dimensions per tile |
 | **Multipliers per Tile** | 1,024 | 32^2 optical multiplier fabrics |
 | **Total Optical Multipliers** | **16,384** | 16 tiles x 1,024 multipliers |
-| **Waveguide Alphabet per Multiplier** | 256 | One-Hot 8-bit residue spatial channels |
-| **Total Spatial Waveguides** | **4,194,304** | 16,384 x 256 spatial channels |
-| **Benes Switching Stages (S)** | 15 stages | 2*log2(256) - 1 universal topology |
-| **Switches per Multiplier Fabric** | 1,920 | (256/2) x 15 non-volatile cells |
-| **Total Sb2S3 Switch Cells** | **31,457,280** | ~31.46 Million non-volatile cells (0 W hold) |
-| **Terminal Ge/Si SAC2M APDs** | **4,194,304** | ~4.19 Million monolithic pixels |
-| **Active Photons per 10 ps Cycle** | 16,384 | 1-in-256 spatial sparsity (8,192 per 5 ps phase) |
+| **Waveguide Alphabet per Multiplier** | 17 | Fermat Modulo 17: 16 active + 1 dark/ref |
+| **Total Spatial Waveguides** | **278,528** | 16,384 x 17 spatial channels |
+| **Asymmetric 16-Tree Switching Stages (S)** | 4 stages | log2(16) binary tree topology |
+| **Switches per Multiplier Fabric** | 240 | 16 binary trees x 15 non-volatile cells |
+| **Total Sb2S3 Switch Cells** | **3,932,160** | ~3.93 Million non-volatile cells (0 W hold) |
+| **Terminal Ge/Si SAC2M APDs** | **278,528** | ~278.5 K monolithic pixels |
+| **Active Photons per 10 ps Cycle** | 16,384 | 1-in-17 spatial sparsity (8,192 per 5 ps phase) |
 | **Operating Frequency** | **100 GHz** | T_cycle = 10.0 ps wave-pipelined |
 | **Die Footprint (A_die)** | **100.00 mm^2** | 10.0 mm x 10.0 mm monolithic planar |
 | **Total Active Die Height** | **330 um** | 50 um CMOS + 250 um SiO2 + 30 um SiPh |
@@ -563,7 +563,7 @@ The simulation suite strictly targets the verified hardware parameters of the **
    - Thin-film lithium tantalate (r33_litao3=30.5 pm/V) with sub-E_pockels_switch=50 aJ/switch energy.
 
 #### B. Extracted Deliverables
-* **Scattering Matrix (Touchstone `.s4p` format):** Insertion loss (IL_switch_cell <= 0.10 dB), extinction ratio (ER_dilated_benes >= 25 dB), phase response, and group delay.
+* **Scattering Matrix (Touchstone `.s4p` format):** Insertion loss (IL_switch_cell <= 0.10 dB), extinction ratio (ER_pcm_switch >= 25 dB), phase response, and group delay.
 * **Volumetric Heat Density Map (Q_opt(x,y,z)):** Exported to HDF5 grid using the formula:
   Q_opt(x,y,z) = (1/2) * omega_optical * epsilon_0 * Im[eps_r(x,y,z)] * |E(x,y,z)|^2
 
@@ -621,7 +621,7 @@ The simulation suite strictly targets the verified hardware parameters of the **
 
 #### A. Core Python Modules
 1. **`moduli_generator.py`:** Generates coprime sets M = {m_1, ..., m_16} with m_i <= m_max=256, satisfying dynamic range prod(m_i) > 2^64.
-2. **`formal_verifier.py`:** Uses the **Z3 SMT Solver** to mathematically prove that finite field multiplication in Z_(m_i) is isomorphic to the Benes permutation states without edge-case failures.
+2. **`formal_verifier.py`:** Uses the **Z3 SMT Solver** to mathematically prove that finite field multiplication in Fermat group Z_17* = Z_16 is isomorphic to the 4-stage binary tree routing states without edge-case failures.
 3. **`one_hot_router.py`:** Simulates spatial 1-hot tensor contractions (N_dim=32 x 32 matrices across N_tiles=16 tiles) with zero floating-point rounding.
 4. **`jir_scheduler.py`:** Emulates microsecond-level closed-loop tile temperature tracking using the Elmer thermal ROM matrix, executing dynamic tile rotation within tau_jir=5 us.
 5. **`rrns_fault_engine.py`:** Injects stochastic physical bit errors (from Xyce BER models) and executes single-channel residue projection self-healing with N_rrns_redundant=2 redundant channels.
@@ -636,7 +636,7 @@ To achieve full engineering sign-off for the JANUS Mini 16-Tile model, the unifi
 | Verification Metric | Target Requirement | Strict Pass / Fail Threshold |
 | :--- | :--- | :--- |
 | **Sb2S3 Insertion Loss (a-Sb2S3)** | IL_switch_cell <= 0.10 dB/cell | **PASS if IL <= 0.10 dB** |
-| **Dilated Benes Extinction Ratio** | ER_dilated_benes >= 25.0 dB | **PASS if ER >= 25.0 dB** |
+| **PCM Switch Extinction Ratio** | ER_pcm_switch >= 25.0 dB | **PASS if ER >= 25.0 dB** |
 | **Waveguide Crossing Insertion Loss** | IL_crossing <= 0.02 dB/crossing | **PASS if IL <= 0.02 dB** |
 | **Waveguide Crossing Crosstalk** | XT_crossing <= -40.0 dB | **PASS if XT <= -40.0 dB** |
 | **SiO2 Thermal Diffusion Time** | tau_diff = 69.06 ms | **PASS if 65 ms <= tau_diff <= 72 ms** |
@@ -681,7 +681,7 @@ janus_mini16_sim/
 +-- tier5_python_rns/
 |   +-- moduli_generator.py           # 16-channel coprime dynamic range
 |   +-- formal_verifier.py            # Z3 SMT formal proof
-|   +-- spatial_one_hot_router.py     # 15-stage Benes tensor contraction
+|   +-- spatial_one_hot_router.py     # 4-stage 16-Tree Fermat Core tensor contraction
 |   +-- jir_thermal_scheduler.py      # Microsecond tile rotation engine
 |   +-- rrns_self_healing.py          # Single-fault parity recovery
 |   +-- gemm_exact_benchmark.py       # Bit-exact GEMM validation vs FP32/INT64

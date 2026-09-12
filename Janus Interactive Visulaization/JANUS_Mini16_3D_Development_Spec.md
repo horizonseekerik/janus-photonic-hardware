@@ -28,7 +28,7 @@ All figures below are extracted directly from the signed-off design reports and 
 | **Total Multipliers** | **$16,384$ Multipliers** | Fully parallel optical 1×1 modular multipliers |
 | **Waveguides per Multiplier** | $256$ Spatial Waveguides | One-Hot spatial basis (exactly 1 channel active, $\alpha = 1/256$) |
 | **Total Waveguides on SiPh** | **$4,194,304$ Waveguides** ($4.19 \times 10^6$) | Single-mode $\text{Si}_3\text{N}_4/\text{Si}$ cores ($450\text{ nm}$ width) |
-| **Total $\text{Sb}_2\text{S}_3$ Switches** | **$31,457,280$ Switches** ($31.46 \times 10^6$) | 15-stage dilated Beneš permutation fabric per multiplier ($1,920$ cells/mult) |
+| **Total $\text{Sb}_2\text{S}_3$ Switches** | **$3,932,160$ Switches** ($3.93 \times 10^6$) | 4-stage Asymmetric 16-Tree Fermat Core per multiplier ($240$ cells/mult) |
 | **Total $\text{Ge/Si}\ \text{SAC}^2\text{M}$ APDs** | **$4,194,304$ Detectors** ($4.19 \times 10^6$) | Monolithically integrated on the SiPh layer ($1$ APD per waveguide terminus) |
 | **Active APDs per Cycle** | $16,384$ Active Channels | Strict One-Hot invariant ($1$ per multiplier per $10\text{ ps}$ cycle) |
 | **Master Laser Launch** | $2.21\text{ W}$ CW ($+33.44\text{ dBm}$) | $1064\text{ nm}$ Yb-doped continuous-wave fiber laser ($75\%$ WPE, $2.95\text{ W}$ elec.) |
@@ -67,7 +67,7 @@ All figures below are extracted directly from the signed-off design reports and 
 │     1. 1:16 Global MMI Optical Tree + 1:1024 Intra-Tile Splitters (1064 nm CW)
 │     2. 16,384 LiTaO3 Pockels Electro-Optic Ring Routers (1×256 input one-hot injection)
 │     3. 4,194,304 Single-Mode Waveguides (450 nm Si3N4/Si cores, 256 per multiplier)
-│     4. 31,457,280 Sb2S3 Non-Volatile PCM Switches (15-stage dilated Beneš fabrics)
+│     4. 3,932,160 Sb2S3 Non-Volatile PCM Switches (4-stage Asymmetric 16-Tree Fermat fabrics)
 │     5. Parabolic MMI Low-Loss Waveguide Crossings (1.6 µm waist, Ltaper = 6.4 µm)
 │     6. 4,194,304 Ge/Si SAC²M Avalanche Photodetectors (APDs at waveguide termini)
 │

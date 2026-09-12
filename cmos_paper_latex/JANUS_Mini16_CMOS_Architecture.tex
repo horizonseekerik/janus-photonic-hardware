@@ -65,7 +65,7 @@ In commercial 65nm CMOS, a Fanout-of-4 ($FO4$) inverter delay is $\approx 30.0\,
 \section{Optoelectronic Interface and 32-Way Polyphase Deserialization}\label{sec:optoelectronic}
 
 \subsection{Separate-Absorption-Charge-Cliff-Multiplication ($\mathrm{SAC^2M}$) APD and StrongARM Sensing}
-The optical core outputs 256 photodetector lines per multiplier, exactly one of which carries optical power per cycle (the \textit{One-Hot Invariant}). Terminal detection is performed by monolithic Ge/Si Separate-Absorption-Charge-Cliff-Multiplication ($\mathrm{SAC^2M}$) Avalanche Photodetectors (APDs):
+The optical core outputs 17 photodetector lines per multiplier (16 active waveguides + 1 dark/reference rail in the Asymmetric 16-Tree Fermat Core), exactly one of which carries optical power per cycle (the \textit{One-Hot Invariant}). Terminal detection is performed by monolithic Ge/Si Separate-Absorption-Charge-Cliff-Multiplication ($\mathrm{SAC^2M}$) Avalanche Photodetectors (APDs):
 \begin{itemize}
     \item Avalanche Multiplication Gain: $M_{\text{apd}} = 7$
     \item Junction Capacitance: $C_j = 0.8\,\text{fF}$
@@ -73,7 +73,7 @@ The optical core outputs 256 photodetector lines per multiplier, exactly one of 
     \item Excess Noise Factor: $F(M) = 2.0$ ($k_{\text{ion}} = 0.06$)
 \end{itemize}
 
-Each APD drives a StrongARM regenerative latch \cite{razavi2015strongarm} on the bottom CMOS die with an energy per decision of $E_{\text{SA}} = 100\,\text{aJ}$ ($0.1\,\text{fJ}$) and regeneration time $t_{\text{regen}} \le 3.5\,\text{ps}$. Because of the spatial $1/256$ sparsity factor ($\alpha_s = 0.00390625$), only 16,384 out of 4,194,304 total detectors switch per cycle, keeping total detector power at an ultra-low \textbf{0.16\,W}.
+Each APD drives a StrongARM regenerative latch \cite{razavi2015strongarm} on the bottom CMOS die with an energy per decision of $E_{\text{SA}} = 100\,\text{aJ}$ ($0.1\,\text{fJ}$) and regeneration time $t_{\text{regen}} \le 3.5\,\text{ps}$. Because of the spatial $1/17$ sparsity factor ($\alpha_s \approx 0.0588$), only 16,384 out of 278,528 total detectors switch per cycle (one active detector per optical multiplier across the 16 residue tiles), keeping total detector power at an ultra-low \textbf{0.16\,W}.
 
 \subsection{1:32 Polyphase Time-Interleaved Deserialization}
 To match the 100\,GHz optical stream to the 3.125\,GHz CMOS backend, we implement a 1:32 polyphase time-interleaved deserializer:
@@ -223,7 +223,7 @@ Wide Power Mesh, Decoupling Caps \& Routing & 84.00 & 84.0\% \\
 \midrule
 1064\,nm Yb Laser (CW) & 2.21\,W Optical Launch (75\% WPE) & 2.95 \\
 $\text{LiTaO}_3$ Pockels Modulators & Sub-50\,aJ Electro-Optic Switching & 0.51 \\
-Ge/Si $\mathrm{SAC^2M}$ APDs & 1/256 Spatial Sparsity ($M=7$) & 0.16 \\
+Ge/Si $\mathrm{SAC^2M}$ APDs & 1/17 Spatial Sparsity ($M=7$) & 0.16 \\
 CMOS Digital Logic & 32-Lane Wallace/Kogge/Montgomery & 1.05 \\
 JIR Scheduler \& Control & 5\,$\mu$s Closed-Loop FSM & 1.50 \\
 $\text{Sb}_2\text{S}_3$ Non-Volatile Hold & Non-Volatile Phase-Change ($0\,\text{W}$) & 0.00 \\

@@ -105,7 +105,7 @@ The central architectural transition is therefore:
 \textbf{Amplitude Reconstruction $\Longrightarrow$ Spatial Localization}
 \end{center}
 
-Instead of representing values through optical intensity, JANUS represents values through spatial waveguide position using One-Hot Optical Residue Number System (RNS) encoding. Each input activates exactly one waveguide among 256 possible spatial channels. Photodetection no longer estimates analog amplitude. Instead, the detector answers a binary question:
+Instead of representing values through optical intensity, JANUS represents values through spatial waveguide position using One-Hot Optical Residue Number System (RNS) encoding. Each input activates exactly one waveguide among the spatial channels ($N \le 256$ in general RNS formulations, or 17 channels in the Asymmetric 16-Tree Fermat Core). Photodetection no longer estimates analog amplitude. Instead, the detector answers a binary question:
 
 \begin{center}
 \textit{``Does waveguide k contain light?''}
@@ -708,11 +708,11 @@ Several device-level components discussed in this work have been independently d
 %  ROW 3  -- Inside each tile: One-Hot encoding + fanout
 % =============================================================
 \node[optical, below=0.60cm of T1] (OH1)
-    {One-Hot Encoding\\$x_i \to e_{x_i}$\\256 waveguides};
+    {One-Hot Encoding\\$x_i \to e_{x_i}$\\17 waveguides};
 \node[optical, below=0.60cm of T2] (OH2)
-    {One-Hot Encoding\\$x_i \to e_{x_i}$\\256 waveguides};
+    {One-Hot Encoding\\$x_i \to e_{x_i}$\\17 waveguides};
 \node[optical, below=0.60cm of Tk] (OHk)
-    {One-Hot Encoding\\$x_i \to e_{x_i}$\\256 waveguides};
+    {One-Hot Encoding\\$x_i \to e_{x_i}$\\17 waveguides};
 
 \draw[arropt] (T1.south) -- (OH1.north);
 \draw[arropt] (T2.south) -- (OH2.north);
@@ -924,7 +924,7 @@ ments while maintaining acceptable thermal density and power consumption \cite{S
 
 \subsubsection{\textbf{Transition from Amplitude Reconstruction to Spatial Localization}}
  
-JANUS resolves this contradiction by abandoning analog amplitude representation entirely.Instead of encoding values through optical intensity, JANUS encodes values spatially. Each residue value activates exactly one optical waveguide among 256 possible channels:
+JANUS resolves this contradiction by abandoning analog amplitude representation entirely.Instead of encoding values through optical intensity, JANUS encodes values spatially. Each residue value activates exactly one optical waveguide among the spatial channels (e.g., 17 channels in the Asymmetric 16-Tree Fermat Core):
 
 \begin{center}
 \text{$x \rightarrow e_x$}

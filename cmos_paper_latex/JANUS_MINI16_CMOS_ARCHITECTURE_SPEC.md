@@ -25,9 +25,9 @@ In JANUS Model 1A, the CMOS electronics and the optical photonics are **not** pl
                       PROJECT JANUS: 3D MONOLITHIC STACK OVERVIEW
 ═══════════════════════════════════════════════════════════════════════════════════════════
   [ TOP STRATUM: 100.00 mm² SiPh Optical Core (30 µm thick) ]
-  ├─ 16 Optical Residue Tiles (32x32 mesh = 16,384 Multipliers, 4.19M Waveguides)
-  ├─ 31.46 Million Sb2S3 Non-Volatile Phase-Change Switches (0 W Static Hold)
-  └─ 4,194,304 Ge/Si $\text{SAC}^2\text{M}$ APD Detectors (1/256 active = 16,384 switching/cycle)
+  ├─ 16 Optical Residue Tiles (32x32 mesh = 16,384 Multipliers, 278.5K Waveguides)
+  ├─ 3.93 Million Sb2S3 Non-Volatile Phase-Change Switches (0 W Static Hold)
+  └─ 278,528 Ge/Si $\text{SAC}^2\text{M}$ APD Detectors (1/17 active = 16,384 switching/cycle)
                                 │
   [ MIDDLE LAYER: 100.00 mm² Monolithic SiO2 Thermal Buffer (250 µm thick) ]
   ├─ Thermal Diffusion Time Constant: tau_diff = 69.06 ms (13,812 JIR cycles)
@@ -65,10 +65,10 @@ In JANUS Model 1A, the CMOS electronics and the optical photonics are **not** pl
 ## 3. Optoelectronic Interface & Polyphase Deserializer
 
 ### 3.1 Ge/Si $\text{SAC}^2\text{M}$ APD & StrongARM Sensing Front-End
-Each optical multiplier outputs 256 spatial waveguides, with exactly one carrying photons per cycle (Spatial One-Hot Invariant).
+Each optical multiplier outputs 17 spatial waveguides (16 active + 1 dark/reference), with exactly one carrying photons per cycle (Spatial One-Hot Invariant).
 * **Detector Device:** Germanium/Silicon $\text{SAC}^2\text{M}$ Avalanche Photodetector ($M=7$, $C_j = 0.8\,\text{fF}$, $t_{\text{PD}} = 1.52\,\text{ps}$).
 * **Sensing Circuit:** StrongARM regenerative comparator ($E_{\text{SA}} = 100\,\text{aJ}$, $t_{\text{regen}} \le 3.5\,\text{ps}$).
-* **Spatial Activity Factor:** $\alpha_s = 1/256 = 0.00390625$. Across 4,194,304 detectors, only 16,384 are active per cycle, yielding an ultra-low total sensing power of **0.16 W**.
+* **Spatial Activity Factor:** $\alpha_s = 1/17 \approx 0.0588$. Across 278,528 detectors (17 per multiplier), only 16,384 are active per cycle, yielding an ultra-low total sensing power of **0.16 W**.
 
 ### 3.2 1:32 Polyphase Interleaving Architecture
 ```
@@ -166,8 +166,8 @@ $$\text{Physical Budget} = 1.152\,\text{MB} + 12.5\%\,\text{ECC (SEC-DED)} + \te
 │                            │               │ parameters, QRNS roots for all sets│
 │ **Modulus 227 Seed Tables**│ ~128 KB       │ Full Cross-Term Memory Trick seeds │
 │                            │               │ for Equation 3 (X_L*Y_H + X_H*Y_L) │
-│ **Beneš Weight Tables**    │ ~768 KB       │ Pre-compiled Sb2S3 permutation     │
-│                            │               │ routing states for matrix weights  │
+│ **16-Tree Weight Tables**   │ ~768 KB       │ Pre-compiled Sb2S3 4-stage binary  │
+│                            │               │ tree states for matrix weights     │
 │ **Hardware Calibration**   │ ~512 KB       │ Per-detector APD trim offsets,     │
 │                            │               │ thermal diode curves & bias tables │
 ├────────────────────────────┼───────────────┼────────────────────────────────────┤
@@ -257,13 +257,13 @@ $$P_{\text{exact}} = (X_H W_H)_{\text{CRT}} \cdot 2^{64} + \text{sign\_extend}\B
 | **Optical** | Residue Tiles | **16 Tiles** | 2 Clusters of 8 Tiles |
 | **Optical** | Matrix Mesh per Tile | **$32 \times 32$** | 1,024 multipliers per tile |
 | **Optical** | Total Optical Multipliers | **16,384 Multipliers** | $16 \times 1,024$ |
-| **Optical** | Waveguides per Multiplier | **256 Waveguides** | Spatial One-Hot 8-bit alphabet |
-| **Optical** | Total Spatial Waveguides | **4,194,304 Waveguides** | ~4.19 Million ($16,384 \times 256$) |
-| **Optical** | Beneš Routing Stages | **15 Stages** | $2 \log_2(256) - 1$ rearrangeably non-blocking |
-| **Optical** | $\text{Sb}_2\text{S}_3$ PCM Switch Cells | **31,457,280 Cells** | ~31.46 Million ($0\,\text{W}$ static hold) |
-| **Detector**| Ge/Si $\text{SAC}^2\text{M}$ APDs | **4,194,304 Detectors** | $M=7, C_j = 0.8\,\text{fF}, t_{\text{PD}} = 1.52\,\text{ps}$ |
-| **Detector**| StrongARM Sense Latches | **4,194,304 Latches** | $100\,\text{aJ}$ per decision, $t_{\text{reg}} \le 3.5\,\text{ps}$ |
-| **Detector**| Active Switched Detectors/cyc | **16,384 Detectors** | $1/256$ spatial sparsity factor |
+| **Optical** | Waveguides per Multiplier | **17 Waveguides** | Fermat Modulo 17 Spatial Alphabet (16 active + 1 dark/reference) |
+| **Optical** | Total Spatial Waveguides | **278,528 Waveguides** | $16,384 \times 17$ channels |
+| **Optical** | Switching Stages per Multiplier | **4 Stages** | 4-Stage Binary Decision Tree ($\log_2 16$) |
+| **Optical** | $\text{Sb}_2\text{S}_3$ PCM Switch Cells | **3,932,160 Cells** | ~3.93 Million ($240$ cells/mult $	imes 16,384$, $0\,\text{W}$ static hold) |
+| **Detector**| Ge/Si $\text{SAC}^2\text{M}$ APDs | **278,528 Detectors** | $M=7, C_j = 0.8\,\text{fF}, t_{\text{PD}} = 1.52\,\text{ps}$ ($17$ per multiplier) |
+| **Detector**| StrongARM Sense Latches | **278,528 Latches** | $100\,\text{aJ}$ per decision, $t_{\text{reg}} \le 3.5\,\text{ps}$ |
+| **Detector**| Active Switched Detectors/cyc | **16,384 Detectors** | $1/17$ spatial sparsity factor (one detector active per multiplier) |
 | **CMOS** | Master JIR Controller | **1 Unit** | $dT/dt$ linear predictor, 32 $\Delta\Sigma$ ADCs |
 | **CMOS** | 5-Bit Polyphase Sequencer | **1 Unit** | `lane_ptr[4:0]` ($0 \to 31 \to 0$) |
 | **CMOS** | Central Non-Volatile ROM | **1 Macro** | $1.5\,\text{MB}$ ($0\,\text{V}$ retention, $0\,\text{W}$ leakage) |
@@ -319,7 +319,7 @@ $$P_{\text{exact}} = (X_H W_H)_{\text{CRT}} \cdot 2^{64} + \text{sign\_extend}\B
 * **Stage 1 (Capture + Wallace 8:2 CSA):** $160\,\text{ps}$ delay $\implies \mathbf{+160\,\text{ps}\ \text{slack}}$ (50% margin).
 * **Stage 2 (Kogge-Stone + Montgomery):** $210\,\text{ps}$ delay $\implies \mathbf{+110\,\text{ps}\ \text{slack}}$ (34% margin).
 * **Stage 3 (PRNS Assembly + Write-Back):** $130\,\text{ps}$ delay $\implies \mathbf{+190\,\text{ps}\ \text{slack}}$ (59% margin).
-* **Total End-to-End Latency:** $3 \times 320.0\,\text{ps} = \mathbf{960.0\,\text{ps}}$ (perfectly matches $750\,\text{ps}$ optical Benes flight time).
+* **Total End-to-End Latency:** $3 \times 320.0\,\text{ps} = \mathbf{960.0\,\text{ps}}$ (perfectly overlaps with optical propagation and APD latching flight times).
 
 ---
 
