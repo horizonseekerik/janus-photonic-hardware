@@ -1802,7 +1802,7 @@
           Project JANUS replaces analog amplitude accumulation with <strong>Spatial One-Hot Residue Number System
             (RNS)</strong> routing, non-volatile <strong>Sb₂S₃</strong> phase-change switches, and an electro-optic
           <strong>50 fs ILO comb clock</strong>—scaling from 4-bit neural inference up to <strong>Exact INT64
-            deterministic precision</strong>. Modeled from a <strong>6.55 TMAC/s Planar MVP (Model 1A at 6.17
+            deterministic precision</strong>. Modeled from a <strong>6.55 TMAC/s Planar Processor (Model 1A at 6.17
             W)</strong> up to a <strong>104.8 PetaMAC/s Hyperscale 3D Module (Model 6B projection at ~392 W)</strong>
           with zero static hold power.
         </p>
@@ -1935,7 +1935,7 @@
           style="display:flex; gap:12px; margin-bottom:1.25rem; flex-wrap:wrap; border-bottom:1px solid var(--border-color); padding-bottom:1rem;">
           <button id="btn-paper-manu" class="btn-primary" onclick="switchPaper('manuscript')"
             style="cursor:pointer; display:flex; align-items:center; gap:8px; font-weight:600; padding:8px 18px;">
-            37-Page Architecture Treatise
+            39-Page Architecture Treatise
           </button>
           <button id="btn-paper-sim" class="btn-outline" onclick="switchPaper('simulation')"
             style="cursor:pointer; display:flex; align-items:center; gap:8px; font-weight:600; padding:8px 18px;">
@@ -1952,7 +1952,7 @@
           <div>
             <h2 id="paper-doc-title" style="font-size:1.35rem; color: var(--text-main); margin-bottom:0.25rem;">
               Architectural Treatise: Project JANUS (IEEEtran Format)</h2>
-            <p id="paper-doc-desc" style="color:var(--text-muted); font-size:0.88rem;">37-Page Architectural Treatise •
+            <p id="paper-doc-desc" style="color:var(--text-muted); font-size:0.88rem;">39-Page Architectural Treatise •
               Self-Authored using IEEEtran Template • 5-Tier Co-Simulation Validation</p>
           </div>
           <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
@@ -2339,10 +2339,8 @@
             <div class="arch-status-row"
               style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 0.82rem; background: rgba(0, 242, 254, 0.03); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--card-border); flex-wrap: wrap; gap: 8px;">
               <span id="arch-status-banner"><b style="color: var(--accent-cyan);">● LIVE PHOTON PROPAGATION:</b> <span
-                  id="arch-status-text">Light pulse traversing LiTaO<sub>3</sub> modulators into 32 × 32 Benes
-                  crossbar...</span></span>
-              <span style="color: var(--accent-green); font-family: monospace;">Time-of-Flight: ~10.4 ps | Latency: 0.08
-                ns</span>
+                  id="arch-status-text">Light pulse traversing LiTaO<sub>3</sub> modulators into Asymmetric 16-Tree Fermat Core...</span></span>
+              <span style="color: var(--accent-green); font-family: monospace;">Time-of-Flight: ~1.33 ps | Latency: 84 ps (80 ps CRT Adder-Tree)</span>
             </div>
           </div>
         </div>
@@ -2356,7 +2354,7 @@
                 ..., <i>r</i><sub>15</sub>) via parallel modulo tables.</p>
               <p>• <b>Electro-Optic Driving:</b> CMOS buffers drive <b>100 GHz LiTaO<sub>3</sub></b> Pockels modulators
                 via copper micro-bumps.</p>
-              <p>• <b>Passive Light Compute:</b> Optical waves cross the 32 &times; 32 Benes mesh in <b>10 ps
+              <p>• <b>Passive Light Compute:</b> Optical waves traverse the 4-stage Asymmetric 16-Tree Fermat Core in <b>1.33 ps
                   Time-of-Flight</b> with <b>zero dynamic clock power</b>.</p>
               <p>• <b>Electronic Digitization:</b> APDs convert light to photocurrent; <b>StrongArm latches</b> latch
                 bits in <b>3.5 ps</b> for CMOS CRT reconstruction.</p>
@@ -2619,7 +2617,7 @@
               </thead>
               <tbody>
                 <tr style="background: rgba(0, 242, 254, 0.08); font-weight: bold;">
-                  <td><b style="color: var(--accent-cyan);">JANUS Model 1A (MVP)</b></td>
+                  <td><b style="color: var(--accent-cyan);">JANUS Model 1A (Monolithic Planar)</b></td>
                   <td>Spatial RNS Optical + 65nm CMOS (Model 1A)</td>
                   <td>100 mm²</td>
                   <td><b style="color: var(--accent-green);">6.17 W</b></td>
@@ -2968,10 +2966,9 @@
                 <tr id="matrix-row-2">
                   <td><b>02</b></td>
                   <td><span style="color: var(--accent-purple); font-weight: 600;">Tier 1</span></td>
-                  <td><b>Dilated Beneš Extinction Ratio</b><br><small style="color: var(--text-muted);">Dilated Beneš
-                      on/off contrast (2 stages x ER_cell)</small></td>
-                  <td><code style="color: var(--text-muted);">ER &gt;= 25.0 dB</code></td>
-                  <td><b id="check-val-2" style="color: var(--accent-cyan); font-family: monospace;">103.8 dB</b></td>
+                  <td><b>16-Tree Signal-to-Crosstalk Ratio (SCR)</b><br><small style="color: var(--text-muted);">16-Tree Fermat Core worst-case signal vs total leakage across non-target leaves</small></td>
+                  <td><code style="color: var(--text-muted);">SCR &gt;= 18.0 dB</code></td>
+                  <td><b id="check-val-2" style="color: var(--accent-cyan); font-family: monospace;">18.96 dB</b></td>
                   <td id="check-status-2"><span class="badge-pass"
                       style="background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 3px 8px; border-radius: 4px; font-weight: 700;">●
                       PASS</span></td>
@@ -3213,7 +3210,7 @@
       <!-- Executive Mission & Patent Reference -->
       <div class="card">
         <div class="card-title">
-          <span>🗺️ Project JANUS Master Engineering & Commercialization Roadmap</span>
+          <span>🗺️ Project JANUS Master Engineering & Technology Roadmap</span>
         </div>
         <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.25rem;">
           <strong>Patent Reference:</strong> Indian Patent App No. 202611052791 (Patent Pending) &nbsp;|&nbsp;
@@ -3221,10 +3218,10 @@
           <strong>Lead Architect:</strong> Deepanshu Bhardwaj
         </p>
         <p style="color: var(--text-muted); font-size: 0.92rem; line-height: 1.6; margin-bottom: 1.5rem;">
-          Project JANUS scales from an <strong>Alpha Single-Stratum Monolithic MVP (6.17 W)</strong> up to a
+          Project JANUS scales from a <strong>Single-Stratum Monolithic Planar Core (6.17 W)</strong> up to a
           <strong>5-Stratum 3D Hyperscale Apex Module (104.85 PetaMAC/s at 392 W)</strong> across 6 generations and 18
-          distinct hardware models. All configurations operate with <strong>zero static mesh power</strong> via
-          non-volatile Sb₂S₃ dilated Beneš switches, 100 GHz wave-pipelining, and sub-10ns JIR rotational thermal
+          distinct hardware configurations. All configurations operate with <strong>zero static mesh power</strong> via
+          non-volatile Sb₂S₃ 16-Tree Fermat switches, 100 GHz wave-pipelining, and sub-10ns JIR rotational thermal
           clamping.
         </p>
 
@@ -3323,7 +3320,7 @@
                 <td style="padding: 8px 10px;"><span class="status-badge"
                     style="border-color: var(--accent-green); color: var(--accent-green); font-weight: 700;">TRL
                     4</span></td>
-                <td style="padding: 8px 10px;">Gen-1 Monolithic Planar MVP</td>
+                <td style="padding: 8px 10px;">Gen-1 Monolithic Planar Core</td>
                 <td style="padding: 8px 10px;">1</td>
                 <td style="padding: 8px 10px;">16</td>
                 <td style="padding: 8px 10px;">32 × 32</td>
@@ -3484,7 +3481,7 @@
                 <td style="padding: 8px 10px;"><b style="color: var(--accent-purple); font-size: 0.9rem;">5D</b></td>
                 <td style="padding: 8px 10px;"><span class="status-badge"
                     style="border-color: var(--accent-cyan); color: var(--accent-cyan);">TRL 3</span></td>
-                <td style="padding: 8px 10px;">Gen-5 3D Datacenter MVP</td>
+                <td style="padding: 8px 10px;">Gen-5 3D Datacenter Architecture</td>
                 <td style="padding: 8px 10px;">4</td>
                 <td style="padding: 8px 10px;">16</td>
                 <td style="padding: 8px 10px;"><b style="color: var(--accent-purple);">128 × 128</b></td>
@@ -3546,7 +3543,7 @@
                 🔬 Individual Model Engineering Deep-Dive & TRL Readiness
               </span>
               <h3 id="inspect-model-title" style="color: var(--text-main); margin-top: 4px;">Model 1A: JANUS Mini
-                16-Tile Monolithic Planar MVP</h3>
+                16-Tile Monolithic Planar Core</h3>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
               <label style="font-size: 0.82rem; color: var(--text-muted);">Select Model:</label>
@@ -3562,7 +3559,7 @@
                 <option value="3B">Model 3B (Gen-3 3D Edge 16T • TRL 3)</option>
                 <option value="3C">Model 3C (Gen-3 3D Edge 32T • TRL 3)</option>
                 <option value="4E">Model 4E (Gen-4 3D Edge 64T Flagship • TRL 3)</option>
-                <option value="5D">Model 5D (Gen-5 3D Datacenter MVP 128×128 • TRL 3)</option>
+                <option value="5D">Model 5D (Gen-5 3D Datacenter 128×128 • TRL 3)</option>
                 <option value="6A">Model 6A (Gen-6 3D DC Master 1.006B Sw • TRL 3)</option>
                 <option value="6B">Model 6B (Gen-6 3D Hyperscale Apex 2.013B Sw • TRL 3)</option>
               </select>
@@ -3596,9 +3593,9 @@
               <div id="trl-step-5" style="height: 6px; border-radius: 3px; background: #334155;"
                 title="TRL 5: MPW Shuttle Foundry Tapeout"></div>
               <div id="trl-step-6" style="height: 6px; border-radius: 3px; background: #334155;"
-                title="TRL 6: 3D Heterogeneous System Prototype"></div>
+                title="TRL 6: 3D Heterogeneous System Integration"></div>
               <div id="trl-step-7" style="height: 6px; border-radius: 3px; background: #334155;"
-                title="TRL 7: Commercial Deployment"></div>
+                title="TRL 7: Full-Scale Fabrication Deployment"></div>
             </div>
 
             <p id="inspect-model-trl-desc"
@@ -3635,7 +3632,7 @@
           </h4>
           <p style="color: var(--text-muted); font-size: 0.84rem; line-height: 1.5; margin-bottom: 1rem;">
             The <strong>Technology Readiness Level (TRL)</strong> framework benchmarks hardware maturity from
-            fundamental mathematical discovery through commercial foundry tapeout and volume deployment. For Project
+            fundamental mathematical discovery through full-scale foundry tapeout and volume deployment. For Project
             JANUS, all 18 models (1A through 6B) have completed analytical proofs and physical link budgets (<strong>TRL
               3</strong>), while Model 1A has completed full 5-tier multi-physics co-simulation validation (<strong>TRL
               4</strong>).
@@ -3665,7 +3662,7 @@
                   style="font-size:0.7rem; background:rgba(16,185,129,0.1); color:#10b981; padding:2px 6px; border-radius:3px;">COMPLETED</span>
               </div>
               <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0; line-height: 1.4;">
-                Spatial one-hot RNS routing, dilated Beneš permutation topologies, 3-equation 64-bit hybrid
+                Spatial one-hot RNS routing, Asymmetric 16-Tree Fermat Core topologies, 3-equation 64-bit hybrid
                 memory-optics partitioning, and dual-tier thermal boundaries (70°C operating / 100°C retention)
                 mathematically formulated.
               </p>
@@ -3715,7 +3712,7 @@
             <div
               style="background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 10px 12px;">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                <b style="color: var(--text-muted); font-size: 0.85rem;">TRL 6: 3D Heterogeneous Prototype</b>
+                <b style="color: var(--text-muted); font-size: 0.85rem;">TRL 6: 3D Heterogeneous Integration</b>
                 <span style="font-size:0.7rem; color:var(--text-muted); padding:2px 6px;">PLANNED</span>
               </div>
               <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0; line-height: 1.4;">
@@ -3727,8 +3724,8 @@
             <div
               style="background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 10px 12px;">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                <b style="color: var(--text-muted); font-size: 0.85rem;">TRL 7: Commercial Deployment</b>
-                <span style="font-size:0.7rem; color:var(--text-muted); padding:2px 6px;">COMMERCIAL</span>
+                <b style="color: var(--text-muted); font-size: 0.85rem;">TRL 7: Full-Scale Fabrication Deployment</b>
+                <span style="font-size:0.7rem; color:var(--text-muted); padding:2px 6px;">DEPLOYMENT</span>
               </div>
               <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0; line-height: 1.4;">
                 Production-grade accelerator modules deployed in standard PCIe Card / OAM Accelerator Form Factors for
@@ -3750,7 +3747,7 @@
             <div class="timeline-dot"></div>
             <div
               style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem; flex-wrap:wrap; gap:8px;">
-              <h3 style="color: var(--text-main);">Generation 1: Single-Stratum Monolithic MVP (Models 1A & 1B)</h3>
+              <h3 style="color: var(--text-main);">Generation 1: Single-Stratum Monolithic Processors (Models 1A & 1B)</h3>
               <span class="status-badge" style="border-color:var(--accent-green); color:var(--accent-green);">100%
                 VERIFIED IN CO-SIM (TRL 4)</span>
             </div>
@@ -3834,7 +3831,7 @@
             <div class="timeline-dot"></div>
             <div
               style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem; flex-wrap:wrap; gap:8px;">
-              <h3 style="color: var(--text-main);">Generation 5: 4-Stratum Stack & Datacenter MVP (Models 5A through 5D)
+              <h3 style="color: var(--text-main);">Generation 5: 4-Stratum Stack & Datacenter Architectures (Models 5A through 5D)
               </h3>
               <span class="status-badge" style="border-color:var(--accent-cyan); color:var(--accent-cyan);">SPECS
                 COMPLETED (TRL 3)</span>
@@ -3842,7 +3839,7 @@
             <p style="color:var(--text-muted); font-size:0.9rem; line-height:1.5; margin-bottom:0.75rem;">
               <strong>Architecture:</strong> 4 SiPh Strata vertical stack introducing the flagship 128×128 matrix
               mesh.<br>
-              <strong>Model 5D (Datacenter MVP):</strong> 16 tiles (128×128), 503.32M switches, 400.0 mm² die,
+              <strong>Model 5D (Datacenter Architecture):</strong> 16 tiles (128×128), 503.32M switches, 400.0 mm² die,
               <strong>90.39 W total power</strong>, achieving <strong>246.5 TMAC/s/W peak efficiency</strong>.
             </p>
           </div>
@@ -4318,7 +4315,7 @@
             <h4 style="font-size:0.95rem; color:var(--text-main); margin-bottom:0.4rem;">Optical Permutation & Sensing
             </h4>
             <p style="font-size:0.82rem; color:var(--text-muted); line-height:1.5;">
-              Laser pulses traverse the 15-stage Sb₂S₃ Beneš switch matrix in 10 ps, detected by Ge/Si APDs and sampled
+              Laser pulses traverse the 4-stage Sb₂S₃ 16-Tree Fermat switch matrix in 1.33 ps, detected by Ge/Si APDs and sampled
               by 1:32 polyphase StrongARM latches.
             </p>
           </div>
@@ -4485,7 +4482,7 @@
               style="color:#8b949e;"># Self-healing hardware fault tolerance</span></div>
           <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#a5d6ff;">"device"</span>: <span
               style="color:#a5d6ff;">"janus:0"</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
-              style="color:#8b949e;"># Model 1A 16-Tile Monolithic 3D Stack</span></div>
+              style="color:#8b949e;"># Model 1A 16-Tile Monolithic Planar Core</span></div>
           <div>&nbsp;&nbsp;&nbsp;&nbsp;}</div>
           <div>)</div>
           <br>
@@ -4503,7 +4500,7 @@
       <div class="card" style="margin-bottom: 2rem;">
         <div class="card-title">📊 6. Frontier AI Model Profiling Comparison</div>
         <p style="color:var(--text-muted); font-size:0.92rem; line-height:1.6; margin-bottom:1rem;">
-          Comparing the JANUS Mini 16-Tile MVP against modern GPU accelerators on standard AI workloads:
+          Comparing the JANUS Mini 16-Tile Planar Processor against modern GPU accelerators on standard AI workloads:
         </p>
 
         <div style="overflow-x:auto;">
@@ -4590,8 +4587,8 @@
             <div style="font-size:0.8rem; font-weight:700; color:var(--accent-purple); margin-bottom:0.4rem;">MLIR /
               CIRCT Dialect</div>
             <p style="font-size:0.82rem; color:var(--text-muted); line-height:1.5;">
-              <code>circt-janus</code> MLIR intermediate representation modeling 1-of-256 spatial waveguides and
-              non-blocking Beneš permutations.
+              <code>circt-janus</code> MLIR intermediate representation modeling spatial waveguides and
+              non-blocking 16-Tree Fermat permutations.
             </p>
           </div>
 
@@ -4642,7 +4639,7 @@
               </span>
               <span
                 style="background:var(--card-sub-bg); border:1px solid var(--border-color); color:var(--text-main); font-size:0.82rem; font-weight:600; padding:5px 12px; border-radius:8px;">
-                🔬 37-Page IEEE Architecture Treatise
+                🔬 39-Page IEEE Architecture Treatise
               </span>
               <span
                 style="background:var(--card-sub-bg); border:1px solid var(--border-color); color:var(--text-main); font-size:0.82rem; font-weight:600; padding:5px 12px; border-radius:8px;">
@@ -4696,7 +4693,7 @@
         <div class="card-title">🔬 8 Foundational Architectural Paradigms & Proposed Frameworks (From Main Treatise)
         </div>
         <p style="color:var(--text-muted); font-size:0.92rem; line-height:1.6; margin-bottom:1.25rem;">
-          Conceived, mathematically formulated, and derived by Deepanshu Bhardwaj in the 37-page foundational
+          Conceived, mathematically formulated, and derived by Deepanshu Bhardwaj in the 39-page foundational
           architecture treatise (<code>main.pdf</code>), these 8 core paradigms reframe photonic computing from analog
           approximations into physically bounded, exact deterministic spatial arithmetic:
         </p>
@@ -4762,22 +4759,18 @@
             </p>
           </div>
 
-          <!-- 4. DILATED BENES -->
+          <!-- 4. ASYMMETRIC 16-TREE FERMAT CORE -->
           <div
             style="background:var(--card-sub-bg); border:1px solid var(--card-border); border-radius:10px; padding:1.25rem;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
               <span
                 style="font-size:0.75rem; font-weight:800; color:var(--accent-cyan); text-transform:uppercase;">Paradigm
                 4</span>
-              <span style="font-size:0.75rem; color:var(--text-muted); font-family:monospace;">Crosstalk &lt; -30
-                dB</span>
+              <span style="font-size:0.75rem; color:var(--text-muted); font-family:monospace;">SCR &gt; 18.96 dB | 1.33 ps</span>
             </div>
-            <h4 style="font-size:1.02rem; color:var(--text-main); margin-bottom:0.4rem;">15-Stage Dilated Beneš
-              Permutation Fabric</h4>
+            <h4 style="font-size:1.02rem; color:var(--text-main); margin-bottom:0.4rem;">Asymmetric 16-Tree Fermat Permutation Fabric</h4>
             <p style="font-size:0.84rem; color:var(--text-muted); line-height:1.55; margin:0;">
-              Derives that a 256&times;256 multiplier mesh requires strictly non-blocking dilated Beneš topology
-              (2&middot;log₂N &minus; 1 = 15 stages) with spatial dilation—guaranteeing that no two active optical paths
-              share physical coupling regions, suppressing crosstalk below &minus;30 dB.
+              Replaces conventional topologies with an Asymmetric 16-Tree Fermat Core (4 binary stages, 240 non-volatile Sb₂S₃ directional couplers per multiplier) delivering 100% &Zopf;₁₇ state efficiency, Radix-16 &Zopf;₂₅₇ division-free reduction, only 1.61 dB insertion loss, and 1.33 ps time-of-flight.
             </p>
           </div>
 
@@ -4915,8 +4908,8 @@
                 <tr style="border-bottom:1px solid var(--card-border);">
                   <td style="padding:8px 10px; font-weight:600; color:var(--accent-cyan);">Routing Crosstalk</td>
                   <td style="padding:8px 10px;">Waveguide optical interference & phase noise</td>
-                  <td style="padding:8px 10px; color:var(--accent-green); font-weight:600;">15-stage Dilated Beneš
-                    spatial separation</td>
+                  <td style="padding:8px 10px; color:var(--accent-green); font-weight:600;">4-stage 16-Tree Fermat Core
+                    spatial isolation (&gt;18.96 dB SCR)</td>
                 </tr>
                 <tr>
                   <td style="padding:8px 10px; font-weight:600; color:var(--accent-cyan);">Precision Scaling</td>
@@ -4979,7 +4972,7 @@
             &nbsp;&nbsp;url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
             {https://doi.org/10.5281/zenodo.22210334},<br>
             &nbsp;&nbsp;note&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= {Indian Patent Application
-            202611052791. 37-page architectural specification}<br>
+            202611052791. 39-page architectural specification}<br>
             }
           </div>
         </div>
@@ -5417,10 +5410,10 @@
         metrics: [
           { label: 'Optical Modulators', value: '100 GHz LiTaO₃', sub: 'V_π·L = 1.2 V·cm' },
           { label: 'Phase-Change Routing', value: 'Sb₂S₃ PCM', sub: '0 W static holding power' },
-          { label: 'Mesh Time-of-Flight', value: '10.4 ps', sub: '32 × 32 Benes crossbar' },
+          { label: 'Core Time-of-Flight', value: '1.33 ps', sub: '4-stage 16-Tree Fermat Core' },
           { label: 'Photodetection', value: 'Ge/Si SAC²M APD', sub: '>45 GHz, 0.85 A/W' }
         ],
-        description: `The <b>SiPh Stratum</b> is the optical compute heart of Project JANUS. Fabricated on a 30 µm thinned silicon-on-insulator platform, it hosts 16 independent coprime residue tiles. Each tile houses a 32 × 32 Benes optical crossbar switched by non-volatile <b>Sb₂S₃ phase-change material</b> directional couplers requiring <b>0 W holding power</b>. Light pulses are modulated at <b>100 GHz</b> via thin-film Lithium Tantalate (LiTaO₃) Pockels modulators, traversing the optical mesh in just <b>10.4 ps</b> with zero dynamic charging loss before being detected by high-speed avalanche photodiodes.`
+        description: `The <b>SiPh Stratum</b> is the optical compute heart of Project JANUS. Fabricated on a 30 µm thinned silicon-on-insulator platform, it hosts 16 independent coprime residue tiles. Each tile houses an Asymmetric 16-Tree Fermat Core featuring 4 binary tree stages (240 non-volatile <b>Sb₂S₃ phase-change material</b> directional couplers per multiplier) requiring <b>0 W holding power</b>. Light pulses are modulated at <b>100 GHz</b> via thin-film Lithium Tantalate (LiTaO₃) Pockels modulators, traversing the optical core in just <b>1.33 ps</b> with zero dynamic charging loss before being detected by high-speed avalanche photodiodes.`
       },
       sio2: {
         id: 'sio2',
@@ -6259,14 +6252,14 @@
     let archSpeed = 1.0;
     let archAnimFrameId = null;
     let archPhotons = [];
-    let archSwitchStates = []; // Sb₂S₃ ON/OFF per Benes node
+    let archSwitchStates = []; // Sb₂S₃ ON/OFF per 16-Tree switch node
     let archTick = 0;
 
     function setArchMode(mode) {
       archMode = mode;
       const statusEl = document.getElementById('arch-status-text');
       if (statusEl) {
-        if (mode === 'gemm') statusEl.innerText = 'High-Speed 100 GHz Matrix Multiplication: Optical wave-pipeline streaming through 32 × 32 Benes crossbar...';
+        if (mode === 'gemm') statusEl.innerText = 'High-Speed 100 GHz Matrix Multiplication: Optical wave-pipeline streaming through Asymmetric 16-Tree Fermat Core (4-stage binary tree)...';
         else if (mode === 'jir') statusEl.innerText = 'JIR Modulus Permutation: CMOS thermal monitor dynamically rerouting hot modulus channels to cold perimeter tiles...';
         else if (mode === 'sb2s3') statusEl.innerText = 'Sb₂S₃ Phase-Change Programming: Nanosecond optical pulse switching Sb₂S₃ between Crystalline (n=3.3) and Amorphous (n=2.7)...';
       }
@@ -6530,8 +6523,8 @@
       const colMargin = 25;
       const modX = colMargin;
       const apdX = w - colMargin - apdW;
-      const meshX1 = modX + modW + (isMobile ? 8 : 16);  // Benes mesh start X
-      const meshX2 = apdX - (isMobile ? 8 : 16);         // Benes mesh end X
+      const meshX1 = modX + modW + (isMobile ? 8 : 16);  // 16-Tree core start X
+      const meshX2 = apdX - (isMobile ? 8 : 16);         // 16-Tree core end X
 
       // === COLUMN 1: LiTaO₃ MODULATOR ARRAY ===
       const modBg = dark ? '#042f2e' : '#e0f2fe';
@@ -6594,7 +6587,7 @@
         ctx.strokeRect(apdX + 3, ly - 8, apdW - 6, 16);
       }
 
-      // === COLUMN 2: BENES MESH WITH Sb₂S₃ SWITCH NODES ===
+      // === COLUMN 2: 16-TREE CORE WITH Sb₂S₃ SWITCH NODES ===
       const meshW = meshX2 - meshX1;
       // Mesh background
       ctx.fillStyle = dark ? 'rgba(0, 40, 50, 0.5)' : 'rgba(224, 242, 254, 0.4)';
@@ -6605,13 +6598,13 @@
       ctx.strokeRect(meshX1, flowTop, meshW, flowH);
       ctx.setLineDash([]);
 
-      // Benes mesh label in header region
+      // 16-Tree core label in header region
       ctx.fillStyle = dark ? 'rgba(0, 242, 254, 0.85)' : 'rgba(2, 132, 199, 0.85)';
       ctx.font = isMobile ? 'bold 8px sans-serif' : 'bold 10px sans-serif';
-      ctx.fillText(isMobile ? '32×32 Beneš (Sb₂S₃ Nodes)' : '32 × 32 Dilated Beneš Permutation Fabric (Sb₂S₃ Directional Couplers)', meshX1 + 6, flowTop + 14);
+      ctx.fillText(isMobile ? '16-Tree (Sb₂S₃ Nodes)' : 'Asymmetric 16-Tree Fermat Core (4-Stage Binary Tree, Sb₂S₃ Directional Couplers)', meshX1 + 6, flowTop + 14);
 
-      // Benes switch stages
-      const NUM_STAGES = 5;
+      // 16-Tree switch stages
+      const NUM_STAGES = 4;
       const stageSpacing = meshW / (NUM_STAGES + 1);
       const stageXs = [];
       for (let s = 0; s < NUM_STAGES; s++) stageXs.push(meshX1 + stageSpacing * (s + 1));
@@ -6672,7 +6665,7 @@
         }
       }
 
-      // --- Draw Benes butterfly cross-connections & Sb₂S₃ switch diamonds ---
+      // --- Draw 16-Tree binary stage connections & Sb₂S₃ switch diamonds ---
       for (let s = 0; s < NUM_STAGES; s++) {
         const sx = stageXs[s];
         // Each stage has crossing pairs: (lane0↔lane1), (lane2↔lane3)
@@ -6923,7 +6916,7 @@
       if (archMode === 'gemm') {
         ctx.fillStyle = dark ? '#22d3ee' : '#0284c7';
         ctx.font = isMobile ? 'bold 9px monospace' : 'bold 11px monospace';
-        ctx.fillText('⚡ 10 ps Optical Compute: r_out = (r_A × r_B) mod m_i', 30, statusY);
+        ctx.fillText('⚡ 1.33 ps Optical Compute: r_out = (r_A × r_B) mod m_i', 30, statusY);
       } else if (archMode === 'jir') {
         ctx.fillStyle = '#ef4444';
         ctx.font = isMobile ? 'bold 9px monospace' : 'bold 11px monospace';
@@ -7725,7 +7718,7 @@
     // --- STRATEGIC ROADMAP: 18 INDIVIDUAL HARDWARE MODELS & TRL TRACKER ---
     const ROADMAP_MODELS = {
       '1A': {
-        id: '1A', name: 'Model 1A: JANUS Mini 16-Tile (Monolithic Planar MVP)', gen: 'Gen-1',
+        id: '1A', name: 'Model 1A: JANUS Mini 16-Tile (Monolithic Planar Core)', gen: 'Gen-1',
         family: 'Mini Family (Edge Robotics & Multi-Tenancy)', strata: 1,
         strataDesc: '1 Stratum (30 µm SiPh) + 250 µm SiO₂ Buffer + 50 µm CMOS (330 µm Bare-Die)',
         tiles: 16, mesh: '32 × 32 (1,024 Mults/Tile)', multipliers: '16,384',
@@ -7891,7 +7884,7 @@
         target: '3-Stratum 3D Integration Modeling'
       },
       '5D': {
-        id: '5D', name: 'Model 5D: JANUS Datacenter MVP (4-Stratum 3D Stack 400 mm²)', gen: 'Gen-5',
+        id: '5D', name: 'Model 5D: JANUS Datacenter Core (4-Stratum 3D Stack 400 mm²)', gen: 'Gen-5',
         family: 'Datacenter Family (Hyperscale 128×128 Core)', strata: 4,
         strataDesc: '4 Strata (30 µm each) + Three 50 µm Buffers + 10 µm APD Block + 250 µm Buffer + 50 µm CMOS (570 µm Total)',
         tiles: 16, mesh: '128 × 128 (16,384 Mults/Tile)', multipliers: '262,144',
@@ -7942,7 +7935,7 @@
         efficiency: '227.2 TMAC/s/W', yield: '≈ 7 Functional / 6-Wafer Set',
         trl: 3, trlLabel: '● TRL 3: 2.013B Switch Hyperscale Apex Architecture Complete',
         trlDesc: 'Delivers 104.85 PetaMAC/s peak optical compute throughput under a strict ~392 W liquid-cooled thermal envelope.',
-        target: 'Commercial Pilot Deployment & Hyperscale Fabrication'
+        target: 'Full-Scale Pilot Deployment & Hyperscale Fabrication'
       }
     };
 
@@ -8210,8 +8203,8 @@
 
       if (type === 'simulation') {
         iframe.src = '/JANUS_Mini16_Simulation_Report.pdf#toolbar=1&navpanes=1&scrollbar=1';
-        title.innerHTML = '📊 Multi-Physics Co-Simulation & Modeling Report: Mini 16-Tile Prototype (IEEEtran Format)';
-        desc.innerHTML = '6-Page Multi-Physics Co-Simulation, Physical Component Modeling & 16-Point Target Verification';
+        title.innerHTML = '📊 Multi-Physics Co-Simulation & Modeling Report: JANUS Mini 16-Tile Monolithic Planar Processor (IEEEtran Format)';
+        desc.innerHTML = '8-Page Multi-Physics Co-Simulation, Physical Component Modeling & 16-Point Target Verification';
         openBtn.href = '/JANUS_Mini16_Simulation_Report.pdf';
         dlBtn.href = '/JANUS_Mini16_Simulation_Report.pdf';
         dlBtn.setAttribute('download', 'JANUS_Mini16_Simulation_Report.pdf');
@@ -8233,7 +8226,7 @@
       } else {
         iframe.src = '/JANUS_IEEE_Manuscript.pdf#toolbar=1&navpanes=1&scrollbar=1';
         title.innerHTML = 'Architectural Treatise: Project JANUS (IEEEtran Format)';
-        desc.innerHTML = '37-Page Architectural Treatise • Self-Authored using IEEEtran Template • 5-Tier Co-Simulation Validation';
+        desc.innerHTML = '39-Page Architectural Treatise • Self-Authored using IEEEtran Template • 5-Tier Co-Simulation Validation';
         openBtn.href = '/JANUS_IEEE_Manuscript.pdf';
         dlBtn.href = '/JANUS_IEEE_Manuscript.pdf';
         dlBtn.setAttribute('download', 'JANUS_IEEE_Manuscript.pdf');
