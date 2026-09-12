@@ -102,11 +102,12 @@ def generate_qrns_moduli_set() -> Dict[str, Any]:
 def generate_prns_moduli_set() -> Dict[str, Any]:
     """
     Generates the PRNS set for Hybrid Memory-Optical architecture.
-    Optics uses top 8 odd moduli (M8 = 63.4 bits, bounds 62-bit sub-products).
-    CMOS uses top 9 odd moduli (M9 = 71.2 bits, bounds 63-bit cross-term).
+    Optics uses top 8 moduli anchored at 257 (M8 = 64 bits, bounds 62-bit sub-products).
+    CMOS uses top 10 moduli anchored at 257 (M10 = 80 bits, bounds 63-bit cross-term).
+    Both sets include 255 for maximum dynamic range; all verified pairwise coprime.
     """
-    opt_moduli = [255, 253, 251, 247, 241, 239, 233, 229]
-    cmos_moduli = [255, 253, 251, 247, 241, 239, 233, 229, 227, 223]
+    opt_moduli = [257, 256, 255, 253, 251, 247, 241, 239]
+    cmos_moduli = [257, 256, 255, 253, 251, 247, 241, 239, 233, 229]
 
     def prep_crt(mods):
         M_tot = 1
