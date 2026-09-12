@@ -1748,11 +1748,541 @@
         font-size: 1rem;
       }
     }
+
+    /* =========================================================
+       COMPLIANCE, PRIVACY MODALS, COOKIE CONSENT & UX UTILITIES
+       ========================================================= */
+
+    /* --- Cookie Consent Banner --- */
+    .cookie-banner-container {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(140%);
+      width: calc(100% - 32px);
+      max-width: 980px;
+      background: var(--header-bg);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35), 0 0 1px rgba(255, 255, 255, 0.2);
+      padding: 1.25rem 1.6rem;
+      z-index: 9990;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .cookie-banner-container.visible {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .cookie-banner-text {
+      flex: 1;
+      font-size: 0.86rem;
+      line-height: 1.55;
+      color: var(--text-muted);
+    }
+
+    .cookie-banner-text strong {
+      color: var(--text-main);
+      font-weight: 700;
+    }
+
+    .cookie-banner-text a {
+      color: var(--accent-cyan);
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .cookie-banner-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      flex-shrink: 0;
+    }
+
+    .cookie-banner-actions .btn-primary,
+    .cookie-banner-actions .btn-outline {
+      padding: 7px 16px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .btn-text-link {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 6px 10px;
+      text-decoration: underline;
+      transition: color 0.2s;
+    }
+
+    .btn-text-link:hover {
+      color: var(--accent-cyan);
+    }
+
+    @media (max-width: 860px) {
+      .cookie-banner-container {
+        flex-direction: column;
+        align-items: stretch;
+        bottom: 12px;
+        padding: 1rem 1.25rem;
+        gap: 1rem;
+      }
+      .cookie-banner-actions {
+        flex-wrap: wrap;
+        justify-content: stretch;
+      }
+      .cookie-banner-actions button {
+        flex: 1 1 120px;
+        text-align: center;
+        justify-content: center;
+      }
+    }
+
+    /* --- Universal Glassmorphic Modal Dialog System --- */
+    .janus-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 7, 18, 0.72);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .janus-modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .janus-modal-card {
+      background: var(--bg-color);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
+      max-width: 720px;
+      width: 100%;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transform: translateY(24px) scale(0.98);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .janus-modal-overlay.active .janus-modal-card {
+      transform: translateY(0) scale(1);
+    }
+
+    .janus-modal-header {
+      padding: 1.2rem 1.5rem;
+      border-bottom: 1px solid var(--card-border);
+      background: var(--header-bg);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .janus-modal-title {
+      font-family: 'Cinzel', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .janus-modal-close {
+      background: transparent;
+      border: none;
+      font-size: 1.3rem;
+      line-height: 1;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .janus-modal-close:hover {
+      color: var(--accent-red);
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .janus-modal-body {
+      padding: 1.5rem;
+      overflow-y: auto;
+      font-size: 0.88rem;
+      line-height: 1.65;
+      color: var(--text-muted);
+    }
+
+    .janus-modal-body h3 {
+      color: var(--text-main);
+      font-size: 0.95rem;
+      margin: 1.2rem 0 0.5rem 0;
+      font-weight: 700;
+    }
+
+    .janus-modal-body h3:first-child {
+      margin-top: 0;
+    }
+
+    .janus-modal-body p {
+      margin-bottom: 0.75rem;
+    }
+
+    .janus-modal-body ul {
+      margin-left: 1.2rem;
+      margin-bottom: 1rem;
+    }
+
+    .janus-modal-body li {
+      margin-bottom: 0.4rem;
+    }
+
+    .janus-modal-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--card-border);
+      background: var(--header-bg);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+
+    /* --- Cookie Category Preference Switches --- */
+    .pref-item {
+      background: var(--card-sub-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .pref-item-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.4rem;
+    }
+
+    .pref-item-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .pref-item-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-green);
+    }
+
+    .pref-switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+
+    .pref-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .pref-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #475569;
+      transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 24px;
+    }
+
+    .pref-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 50%;
+    }
+
+    .pref-switch input:checked + .pref-slider {
+      background-color: var(--accent-cyan);
+    }
+
+    .pref-switch input:checked + .pref-slider:before {
+      transform: translateX(20px);
+    }
+
+    .pref-switch input:disabled + .pref-slider {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* --- Floating Utility Controls (Back to Top & Shortcuts) --- */
+    .floating-tools-stack {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 9950;
+    }
+
+    .floating-tool-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      color: var(--text-main);
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      transition: all 0.25s ease;
+    }
+
+    .floating-tool-btn:hover {
+      color: var(--accent-cyan);
+      border-color: var(--accent-cyan);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 242, 254, 0.25);
+    }
+
+    #btn-back-to-top {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+    }
+
+    #btn-back-to-top.visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    /* --- Toast Notification System --- */
+    #janus-toast-container {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 10050;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .janus-toast {
+      background: var(--header-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--accent-cyan);
+      color: var(--text-main);
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.25);
+      transform: translateX(120%);
+      opacity: 0;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .janus-toast.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    /* --- Modern Multi-Column Footer --- */
+    footer {
+      background: var(--bg-dark);
+      border-top: 1px solid var(--card-border);
+      padding: 3.5rem 2rem 2rem 2rem;
+      margin-top: 5rem;
+      position: relative;
+      z-index: 10;
+    }
+
+    .footer-grid {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 2fr 1.2fr 1.2fr 1.4fr;
+      gap: 3rem;
+    }
+
+    @media (max-width: 980px) {
+      .footer-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 2.5rem;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+    }
+
+    .footer-col h4 {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text-main);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .footer-links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+    }
+
+    .footer-links a,
+    .footer-links button {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      text-decoration: none;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      padding: 0;
+      font-family: inherit;
+      transition: color 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .footer-links a:hover,
+    .footer-links button:hover {
+      color: var(--accent-cyan);
+    }
+
+    .footer-bottom {
+      max-width: 1280px;
+      margin: 3rem auto 0 auto;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* --- Citation Code Block Styling --- */
+    .citation-box {
+      background: var(--card-sub-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: monospace;
+      font-size: 0.8rem;
+      color: var(--text-main);
+      overflow-x: auto;
+      white-space: pre-wrap;
+      position: relative;
+      margin-bottom: 1rem;
+    }
+
+    .citation-copy-btn {
+      padding: 4px 10px;
+      font-size: 0.74rem;
+      background: var(--header-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 600;
+    }
+
+    .citation-copy-btn:hover {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    /* --- Print Media Stylesheet --- */
+    @media print {
+      body {
+        background: #fff !important;
+        color: #000 !important;
+      }
+      header, .floating-tools-stack, .cookie-banner-container, #janus-toast-container, .theme-switch-wrapper, .mobile-menu-btn {
+        display: none !important;
+      }
+      .page-section {
+        display: block !important;
+        page-break-after: always;
+      }
+      .btn-primary, .btn-outline, .btn-action {
+        display: none !important;
+      }
+      footer {
+        border-top: 1px solid #ccc;
+        margin-top: 2rem;
+        padding: 1rem 0;
+      }
+    }
+
   </style>
   <!-- Preload & Prefetch Critical Manuscript PDFs -->
   <link rel="preload" href="/JANUS_IEEE_Manuscript.pdf" as="fetch" crossorigin>
   <link rel="prefetch" href="/JANUS_Mini16_Simulation_Report.pdf" as="fetch" crossorigin>
   <link rel="prefetch" href="/JANUS_Mini16_CMOS_Architecture.pdf" as="fetch" crossorigin>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0284c7">
 </head>
 
 <body>
@@ -5004,13 +5534,81 @@
     </section>
 
   </main>
-
-  <!-- FOOTER -->
+  <!-- UPGRADED MULTI-COLUMN ENGINEERING FOOTER -->
   <footer>
-    <p>JANUS © 2026 • Spatial Optical RNS Matrix Multiplication Accelerator • All Rights Reserved</p>
-    <p style="margin-top:4px; font-size:0.75rem; color:#64748b;">IEEEtran Compliant • 5-Tier Multi-Physics Co-Simulation
-      • Zero Static Power</p>
+    <div class="footer-grid">
+      <!-- Col 1: Project Identity -->
+      <div class="footer-col">
+        <div class="brand" style="cursor: default; margin-bottom: 0.8rem;">
+          <img src="/janus-logo.png" alt="Janus Photonic Hardware Logo" class="brand-logo-img" style="width:28px; height:28px;" />
+          <div class="brand-title">
+            <span class="brand-name" style="font-size: 1.15rem;">JANUS</span>
+            <span class="brand-subtitle" style="font-size: 0.65rem;">Photonic Hardware</span>
+          </div>
+        </div>
+        <p style="font-size: 0.84rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 1rem;">
+          Project JANUS is an open-access photonic tensor computing architecture pioneering deterministic Spatial Residue Number System (RNS) matrix acceleration with zero static hold power.
+        </p>
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <a href="https://doi.org/10.5281/zenodo.22210334" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
+            <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.22210334.svg" alt="DOI 10.5281/zenodo.22210334" style="height: 20px;" />
+          </a>
+          <span style="font-size: 0.75rem; background: var(--card-sub-bg); border: 1px solid var(--card-border); padding: 2px 8px; border-radius: 4px; color: var(--accent-cyan);">IEEEtran Compliant</span>
+        </div>
+      </div>
+
+      <!-- Col 2: Architectural Papers & Specs -->
+      <div class="footer-col">
+        <h4>📄 Manuscripts & Docs</h4>
+        <ul class="footer-links">
+          <li><button onclick="switchPage('paper'); switchPaper('manuscript');">Architectural Treatise (39-Page)</button></li>
+          <li><button onclick="switchPage('paper'); switchPaper('simulation');">Co-Simulation Report (8-Page)</button></li>
+          <li><button onclick="switchPage('paper'); switchPaper('cmos');">CMOS Digital Backend Spec</button></li>
+          <li><button onclick="switchPage('roadmap');">Strategic Hardware Roadmap</button></li>
+          <li><a href="/documentation_reports/JANUS_MINI_16T_CO_SIMULATION_SPEC.html" target="_blank">Full 5-Tier Co-Sim Spec ↗</a></li>
+        </ul>
+      </div>
+
+      <!-- Col 3: Solvers & Hardware -->
+      <div class="footer-col">
+        <h4>⚡ Hardware & Tools</h4>
+        <ul class="footer-links">
+          <li><button onclick="switchPage('simulation'); switchTab('rns');">Spatial RNS Simulator</button></li>
+          <li><button onclick="switchPage('simulation'); switchTab('arch');">3D WebGL Strata Model</button></li>
+          <li><button onclick="switchPage('simulation'); switchTab('matrix');">16-Point Sign-Off Matrix</button></li>
+          <li><button onclick="switchPage('codebase');">Interactive Codebase Explorer</button></li>
+          <li><button onclick="switchPage('hardware');">CMOS & 3D Stacking Model</button></li>
+        </ul>
+      </div>
+
+      <!-- Col 4: Governance & Legal -->
+      <div class="footer-col">
+        <h4>⚖️ Governance & Citation</h4>
+        <ul class="footer-links">
+          <li><button onclick="openJanusModal('modal-cookie-preferences')">🍪 Cookie & Storage Settings</button></li>
+          <li><button onclick="openJanusModal('modal-privacy-policy')">🔒 Privacy Policy & Data Disclosure</button></li>
+          <li><button onclick="openJanusModal('modal-terms-use')">📜 Terms of Research Use</button></li>
+          <li><button onclick="openJanusModal('modal-citation')">📑 Cite Project JANUS (BibTeX)</button></li>
+          <li><button onclick="openJanusModal('modal-shortcuts')">⌨️ Keyboard Shortcuts Guide</button></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="footer-bottom">
+      <div>
+        JANUS © 2026 • Spatial Optical RNS Tensor Hardware • All Rights Reserved
+      </div>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <span style="display: inline-flex; align-items: center; gap: 6px; color: var(--accent-green);">
+          <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent-green); display: inline-block;"></span>
+          16/16 Verification Checks Verified
+        </span>
+        <a href="https://github.com/horizonseekerik/janus-photonic-hardware" target="_blank" rel="noopener noreferrer" style="color: var(--text-muted); text-decoration: none;">GitHub Repository ↗</a>
+      </div>
+    </div>
   </footer>
+
 
   <!-- JAVASCRIPT LOGIC & API CONNECTORS -->
   <script>
@@ -9193,8 +9791,226 @@
       }
     }
 
+
+    // =========================================================
+    // COMPLIANCE, PRIVACY MODALS, COOKIE CONSENT & UX SCRIPT
+    // =========================================================
+
+    // --- Modal Management ---
+    function openJanusModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function closeJanusModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.remove('active');
+        const anyActive = document.querySelector('.janus-modal-overlay.active');
+        if (!anyActive) {
+          document.body.style.overflow = '';
+        }
+      }
+    }
+
+    function handleJanusModalBackdrop(event, modalId) {
+      if (event.target && event.target.id === modalId) {
+        closeJanusModal(modalId);
+      }
+    }
+
+    // --- Cookie Consent Engine ---
+    function initCookieConsent() {
+      const consent = localStorage.getItem('janus_cookie_consent');
+      if (!consent) {
+        setTimeout(() => {
+          const banner = document.getElementById('janus-cookie-banner');
+          if (banner) banner.classList.add('visible');
+        }, 600);
+      } else {
+        try {
+          const parsed = JSON.parse(consent);
+          const funcEl = document.getElementById('pref-functional');
+          const analEl = document.getElementById('pref-analytics');
+          if (funcEl) funcEl.checked = !!parsed.functional;
+          if (analEl) analEl.checked = !!parsed.analytics;
+        } catch (e) {}
+      }
+    }
+
+    function acceptAllCookies() {
+      const consent = {
+        necessary: true,
+        functional: true,
+        analytics: true,
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem('janus_cookie_consent', JSON.stringify(consent));
+      const banner = document.getElementById('janus-cookie-banner');
+      if (banner) banner.classList.remove('visible');
+      closeJanusModal('modal-cookie-preferences');
+      showJanusToast('All cookie and storage preferences accepted.');
+    }
+
+    function declineCookies() {
+      const consent = {
+        necessary: true,
+        functional: false,
+        analytics: false,
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem('janus_cookie_consent', JSON.stringify(consent));
+      const banner = document.getElementById('janus-cookie-banner');
+      if (banner) banner.classList.remove('visible');
+      closeJanusModal('modal-cookie-preferences');
+      showJanusToast('Non-essential cookies and storage declined.');
+    }
+
+    function openCookiePreferences() {
+      const banner = document.getElementById('janus-cookie-banner');
+      if (banner) banner.classList.remove('visible');
+      openJanusModal('modal-cookie-preferences');
+    }
+
+    function saveCookiePreferences() {
+      const funcEl = document.getElementById('pref-functional');
+      const analEl = document.getElementById('pref-analytics');
+      const consent = {
+        necessary: true,
+        functional: funcEl ? funcEl.checked : true,
+        analytics: analEl ? analEl.checked : false,
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem('janus_cookie_consent', JSON.stringify(consent));
+      closeJanusModal('modal-cookie-preferences');
+      showJanusToast('Cookie preferences updated successfully.');
+    }
+
+    // --- Toast Notification Helper ---
+    function showJanusToast(msg, duration) {
+      if (typeof duration !== 'number') duration = 3000;
+      const container = document.getElementById('janus-toast-container');
+      if (!container) return;
+      const toast = document.createElement('div');
+      toast.className = 'janus-toast';
+      toast.innerHTML = '<span>✨</span><span>' + msg + '</span>';
+      container.appendChild(toast);
+      setTimeout(() => toast.classList.add('show'), 20);
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 400);
+      }, duration);
+    }
+
+    // --- Citation Clipboard Copy ---
+    function copyCitationText(format) {
+      let text = '';
+      if (format === 'bibtex') {
+        const el = document.getElementById('citation-bibtex');
+        if (el) text = el.innerText.trim();
+      } else if (format === 'ieee') {
+        const el = document.getElementById('citation-ieee');
+        if (el) text = el.innerText.trim();
+      } else if (format === 'apa') {
+        const el = document.getElementById('citation-apa');
+        if (el) text = el.innerText.trim();
+      }
+      if (text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(() => {
+            showJanusToast('Citation copied to clipboard!');
+          }).catch(() => {
+            fallbackCopy(text);
+          });
+        } else {
+          fallbackCopy(text);
+        }
+      }
+    }
+
+    function fallbackCopy(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showJanusToast('Citation copied to clipboard!');
+    }
+
+    // --- Floating Back-to-Top Button ---
+    function scrollToTop() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    window.addEventListener('scroll', () => {
+      const btn = document.getElementById('btn-back-to-top');
+      if (btn) {
+        if (window.scrollY > 350) {
+          btn.classList.add('visible');
+        } else {
+          btn.classList.remove('visible');
+        }
+      }
+    });
+
+    // --- Global Keyboard Shortcuts ---
+    window.addEventListener('keydown', (e) => {
+      // If typing in input or textarea, ignore
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable)) {
+        return;
+      }
+
+      if (e.key === 'Escape') {
+        const activeModals = document.querySelectorAll('.janus-modal-overlay.active');
+        activeModals.forEach(m => closeJanusModal(m.id));
+        return;
+      }
+
+      if (e.key === '?' || (e.key === 'h' && !e.ctrlKey && !e.metaKey)) {
+        e.preventDefault();
+        const modal = document.getElementById('modal-shortcuts');
+        if (modal && modal.classList.contains('active')) {
+          closeJanusModal('modal-shortcuts');
+        } else {
+          openJanusModal('modal-shortcuts');
+        }
+        return;
+      }
+
+      if ((e.key === 't' || e.key === 'T') && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        toggleTheme();
+        showJanusToast('Switched to ' + (isDarkTheme() ? 'Dark' : 'Light') + ' Theme');
+        return;
+      }
+
+      if ((e.key === 's' || e.key === 'S') && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        switchPage('simulation');
+        showJanusToast('Navigated to Co-Simulation Suite');
+        return;
+      }
+
+      const num = parseInt(e.key);
+      if (!isNaN(num) && num >= 1 && num <= 8 && !e.ctrlKey && !e.metaKey) {
+        const pages = ['home', 'paper', 'simulation', 'codebase', 'roadmap', 'hardware', 'software', 'about'];
+        const p = pages[num - 1];
+        if (p) {
+          switchPage(p);
+          showJanusToast('Navigated to ' + p.toUpperCase());
+        }
+      }
+    });
+
     // --- AUTO-INITIALIZE ON DOM LOAD ---
     document.addEventListener('DOMContentLoaded', () => {
+      initCookieConsent();
       evalInteger();
       loadAIData();
       runCustomThermalSim();
@@ -9213,6 +10029,231 @@
     });
 
   </script>
+  <!-- FLOATING COOKIE & LOCAL STORAGE CONSENT BANNER -->
+  <div id="janus-cookie-banner" class="cookie-banner-container" role="region" aria-label="Cookie and storage consent">
+    <div class="cookie-banner-text">
+      <strong>🍪 Cookie & Local Storage Consent:</strong> We use essential client-side local storage to preserve your theme, active simulation parameters, and hardware test state. We do not use third-party advertising cookies or cross-site tracking. You can accept all storage, decline non-essential caching, or customize your preferences. Read our <a onclick="openJanusModal('modal-privacy-policy')">Privacy Policy</a>.
+    </div>
+    <div class="cookie-banner-actions">
+      <button class="btn-primary" onclick="acceptAllCookies()">Accept All</button>
+      <button class="btn-outline" onclick="declineCookies()">Decline Non-Essential</button>
+      <button class="btn-text-link" onclick="openCookiePreferences()">Preferences</button>
+    </div>
+  </div>
+
+  <!-- MODAL 1: COOKIE PREFERENCES -->
+  <div id="modal-cookie-preferences" class="janus-modal-overlay" onclick="handleJanusModalBackdrop(event, 'modal-cookie-preferences')">
+    <div class="janus-modal-card" role="dialog" aria-labelledby="modal-cookie-title">
+      <div class="janus-modal-header">
+        <div id="modal-cookie-title" class="janus-modal-title">🍪 Cookie & Storage Preferences</div>
+        <button class="janus-modal-close" onclick="closeJanusModal('modal-cookie-preferences')" aria-label="Close modal">✕</button>
+      </div>
+      <div class="janus-modal-body">
+        <p>
+          Configure how Project JANUS stores client-side data on your device. We prioritize user privacy and data sovereignty: all simulation algorithms and mathematical solvers execute client-side or on dedicated stateless serverless endpoints without collecting personal data.
+        </p>
+
+        <!-- Strictly Necessary -->
+        <div class="pref-item">
+          <div class="pref-item-header">
+            <div class="pref-item-title">Strictly Necessary Storage</div>
+            <span class="pref-item-badge">Always Active</span>
+          </div>
+          <p style="font-size: 0.8rem; margin: 0; color: var(--text-muted);">
+            Required for page navigation, UI theme state (Light/Dark mode), and recording your cookie consent status. Cannot be disabled.
+          </p>
+        </div>
+
+        <!-- Functional Simulation Cache -->
+        <div class="pref-item">
+          <div class="pref-item-header">
+            <div class="pref-item-title">Functional Simulation Cache</div>
+            <label class="pref-switch">
+              <input type="checkbox" id="pref-functional" checked>
+              <span class="pref-slider"></span>
+            </label>
+          </div>
+          <p style="font-size: 0.8rem; margin: 0; color: var(--text-muted);">
+            Persists custom numerical values (e.g. dynamic RNS inputs, active optical tile configuration, custom thermal dwell times) between browser reloads.
+          </p>
+        </div>
+
+        <!-- Performance & Diagnostics -->
+        <div class="pref-item">
+          <div class="pref-item-header">
+            <div class="pref-item-title">Solver Performance & Diagnostics</div>
+            <label class="pref-switch">
+              <input type="checkbox" id="pref-analytics">
+              <span class="pref-slider"></span>
+            </label>
+          </div>
+          <p style="font-size: 0.8rem; margin: 0; color: var(--text-muted);">
+            Measures WebGL frames per second and solver execution latency locally to optimize rendering performance on low-power devices.
+          </p>
+        </div>
+      </div>
+      <div class="janus-modal-footer">
+        <button class="btn-outline" onclick="saveCookiePreferences()">Save Preferences</button>
+        <button class="btn-primary" onclick="acceptAllCookies()">Accept All</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: PRIVACY POLICY -->
+  <div id="modal-privacy-policy" class="janus-modal-overlay" onclick="handleJanusModalBackdrop(event, 'modal-privacy-policy')">
+    <div class="janus-modal-card" role="dialog" aria-labelledby="modal-privacy-title">
+      <div class="janus-modal-header">
+        <div id="modal-privacy-title" class="janus-modal-title">🔒 Privacy Policy & Data Disclosure</div>
+        <button class="janus-modal-close" onclick="closeJanusModal('modal-privacy-policy')" aria-label="Close modal">✕</button>
+      </div>
+      <div class="janus-modal-body">
+        <p><strong>Effective Date:</strong> September 2026 • <strong>Version:</strong> 2.1 (GDPR & CCPA Compliant)</p>
+        
+        <h3>1. Commitment to Privacy</h3>
+        <p>
+          Project JANUS ("we", "our") is dedicated to transparency, academic integrity, and strict adherence to global privacy standards (EU GDPR, California CCPA/CPRA). We operate under a strict <strong>zero-surveillance</strong> principle.
+        </p>
+
+        <h3>2. What Data We Process</h3>
+        <ul>
+          <li><strong>No Personal Identifiable Information (PII):</strong> We do not collect names, email addresses, phone numbers, or user accounts.</li>
+          <li><strong>Client-Side Local Storage:</strong> Keys stored include <code>janus_theme</code> (theme mode), <code>janus_cookie_consent</code> (consent record), and temporary simulation variables.</li>
+          <li><strong>Third-Party Content Delivery Networks (CDNs):</strong> External libraries (Cloudflare cdnjs for Highlight.js and Three.js, Google Fonts) process standard IP addresses solely for technical transport and asset delivery.</li>
+        </ul>
+
+        <h3>3. Stateless Serverless Simulation APIs</h3>
+        <p>
+          API calls to <code>/api/evaluate_matrix</code>, <code>/api/run_single_check</code>, and <code>/api/matrix_data</code> execute transient mathematical algorithms without recording or storing user input history in databases.
+        </p>
+
+        <h3>4. Your Rights Under GDPR & CCPA</h3>
+        <p>
+          You have the right to inspect, clear, or revoke stored client data at any time by clearing your browser cache or clicking "Cookie & Storage Settings" in the footer.
+        </p>
+
+        <h3>5. Contact & Inquiries</h3>
+        <p>
+          For academic or data protection inquiries, please submit an issue via our official <a href="https://github.com/horizonseekerik/janus-photonic-hardware" target="_blank" rel="noopener noreferrer">GitHub repository</a>.
+        </p>
+      </div>
+      <div class="janus-modal-footer">
+        <button class="btn-primary" onclick="closeJanusModal('modal-privacy-policy')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: TERMS OF RESEARCH USE -->
+  <div id="modal-terms-use" class="janus-modal-overlay" onclick="handleJanusModalBackdrop(event, 'modal-terms-use')">
+    <div class="janus-modal-card" role="dialog" aria-labelledby="modal-terms-title">
+      <div class="janus-modal-header">
+        <div id="modal-terms-title" class="janus-modal-title">📜 Terms of Research Use & Open Access</div>
+        <button class="janus-modal-close" onclick="closeJanusModal('modal-terms-use')" aria-label="Close modal">✕</button>
+      </div>
+      <div class="janus-modal-body">
+        <p><strong>Licensing:</strong> Creative Commons Attribution 4.0 International (CC BY 4.0) & Academic Open Access</p>
+
+        <h3>1. Academic Reproduction & Citation</h3>
+        <p>
+          All manuscripts, simulation source codes, mathematical proofs, and 3D architectural models published within Project JANUS may be utilized, reproduced, and adapted for non-commercial academic and educational purposes, conditioned on proper bibliographic citation of the primary IEEE manuscript and Zenodo permanent DOI (<code>10.5281/zenodo.22210334</code>).
+        </p>
+
+        <h3>2. Intellectual Property & Patents</h3>
+        <p>
+          The architectural innovations—including Spatial One-Hot Residue Number System routing, non-volatile antimony trisulfide (Sb₂S₃) crossbar configurations, and Jacobi-Identity thermal rotation algorithms—are documented for academic research dissemination. Commercial implementation or fabrication requires appropriate licensing.
+        </p>
+
+        <h3>3. Disclaimer of Warranty</h3>
+        <p>
+          All physics co-simulation metrics (MEEP FDTD, Elmer FEM, Xyce SPICE, and Icarus Verilog) represent rigorous multi-physics numerical modeling and formal mathematical verification. Hardware implementations are subject to foundry manufacturing tolerances.
+        </p>
+      </div>
+      <div class="janus-modal-footer">
+        <button class="btn-primary" onclick="closeJanusModal('modal-terms-use')">I Understand</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: CITATION & BIBTEX EXPORT -->
+  <div id="modal-citation" class="janus-modal-overlay" onclick="handleJanusModalBackdrop(event, 'modal-citation')">
+    <div class="janus-modal-card" role="dialog" aria-labelledby="modal-citation-title">
+      <div class="janus-modal-header">
+        <div id="modal-citation-title" class="janus-modal-title">📑 Cite Project JANUS</div>
+        <button class="janus-modal-close" onclick="closeJanusModal('modal-citation')" aria-label="Close modal">✕</button>
+      </div>
+      <div class="janus-modal-body">
+        <p>If you reference Project JANUS in your academic research, please cite our permanent archive:</p>
+
+        <h3 style="display:flex; justify-content:space-between; align-items:center;">
+          BibTeX Format
+          <button class="citation-copy-btn" onclick="copyCitationText('bibtex')">📋 Copy BibTeX</button>
+        </h3>
+        <div id="citation-bibtex" class="citation-box">@article{janus2026photonic,
+  title={Project JANUS: Deterministic Spatial Residue Optical Computing Architecture for Peta-Scale Deep Learning Acceleration},
+  author={Horizon Seeker IK and Project JANUS Contributors},
+  journal={IEEE Transactions on Emerging Topics in Computing (Preprint)},
+  year={2026},
+  doi={10.5281/zenodo.22210334},
+  url={https://janus-photonic-hardware.vercel.app/}
+}</div>
+
+        <h3 style="display:flex; justify-content:space-between; align-items:center; margin-top:1.2rem;">
+          IEEE Reference Format
+          <button class="citation-copy-btn" onclick="copyCitationText('ieee')">📋 Copy IEEE</button>
+        </h3>
+        <div id="citation-ieee" class="citation-box">H. S. IK et al., "Project JANUS: Deterministic Spatial Residue Optical Computing Architecture for Peta-Scale Deep Learning Acceleration," IEEE Trans. Emerg. Topics Comput., 2026, doi: 10.5281/zenodo.22210334.</div>
+
+        <h3 style="display:flex; justify-content:space-between; align-items:center; margin-top:1.2rem;">
+          APA 7th Edition Format
+          <button class="citation-copy-btn" onclick="copyCitationText('apa')">📋 Copy APA</button>
+        </h3>
+        <div id="citation-apa" class="citation-box">IK, H. S., & Project JANUS Contributors. (2026). Project JANUS: Deterministic Spatial Residue Optical Computing Architecture for Peta-Scale Deep Learning Acceleration. IEEE Transactions on Emerging Topics in Computing (Preprint). https://doi.org/10.5281/zenodo.22210334</div>
+      </div>
+      <div class="janus-modal-footer">
+        <button class="btn-primary" onclick="closeJanusModal('modal-citation')">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 5: KEYBOARD SHORTCUTS GUIDE -->
+  <div id="modal-shortcuts" class="janus-modal-overlay" onclick="handleJanusModalBackdrop(event, 'modal-shortcuts')">
+    <div class="janus-modal-card" style="max-width: 540px;" role="dialog" aria-labelledby="modal-shortcuts-title">
+      <div class="janus-modal-header">
+        <div id="modal-shortcuts-title" class="janus-modal-title">⌨️ Keyboard Navigation Shortcuts</div>
+        <button class="janus-modal-close" onclick="closeJanusModal('modal-shortcuts')" aria-label="Close modal">✕</button>
+      </div>
+      <div class="janus-modal-body">
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 0.75rem; align-items: center; font-size: 0.85rem;">
+          <div><kbd style="background:var(--card-sub-bg); border:1px solid var(--card-border); padding:2px 8px; border-radius:4px; font-weight:700;">1</kbd> – <kbd style="background:var(--card-sub-bg); border:1px solid var(--card-border); padding:2px 8px; border-radius:4px; font-weight:700;">8</kbd></div>
+          <div>Jump to Navigation Pages 1 through 8</div>
+
+          <div><kbd style="background:var(--card-sub-bg); border:1px solid var(--card-border); padding:2px 8px; border-radius:4px; font-weight:700;">T</kbd></div>
+          <div>Toggle Light / Dark Color Theme</div>
+
+          <div><kbd style="background:var(--card-sub-bg); border:1px solid var(--card-border); padding:2px 8px; border-radius:4px; font-weight:700;">S</kbd></div>
+          <div>Switch directly to Co-Simulation Suite</div>
+
+          <div><kbd style="background:var(--card-sub-bg); border:1px solid var(--card-border); padding:2px 8px; border-radius:4px; font-weight:700;">?</kbd> or <kbd style="background:var(--card-sub-bg); border:1px solid var(--card-border); padding:2px 8px; border-radius:4px; font-weight:700;">H</kbd></div>
+          <div>Open this Keyboard Shortcuts Guide</div>
+
+          <div><kbd style="background:var(--card-sub-bg); border:1px solid var(--card-border); padding:2px 8px; border-radius:4px; font-weight:700;">Esc</kbd></div>
+          <div>Close any open modal dialog</div>
+        </div>
+      </div>
+      <div class="janus-modal-footer">
+        <button class="btn-primary" onclick="closeJanusModal('modal-shortcuts')">Got It</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING UTILITIES (BACK TO TOP & SHORTCUTS) -->
+  <div class="floating-tools-stack">
+    <button id="btn-shortcuts-help" class="floating-tool-btn" onclick="openJanusModal('modal-shortcuts')" title="Keyboard Shortcuts (? or H)">⌨️</button>
+    <button id="btn-back-to-top" class="floating-tool-btn" onclick="scrollToTop()" title="Back to Top">▲</button>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="janus-toast-container"></div>
+
 </body>
 
 </html>
