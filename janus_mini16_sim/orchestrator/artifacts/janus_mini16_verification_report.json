@@ -1,15 +1,15 @@
 {
   "project": "Project JANUS Mini 16-Tile",
-  "timestamp": "2026-09-11T16:50:18Z",
+  "timestamp": "2026-09-12T11:00:59Z",
   "overall_pass": true,
   "status": "VERIFICATION COMPLETED",
   "execution_times_seconds": {
-    "tier1": 72.42682147026062,
-    "tier2": 6.457317590713501,
-    "tier3": 0.024990558624267578,
-    "tier4": 3.3114163875579834,
-    "tier5": 3.5709121227264404,
-    "total": 85.79595494270325
+    "tier1": 68.94312810897827,
+    "tier2": 5.8076817989349365,
+    "tier3": 0.017603635787963867,
+    "tier4": 2.7814717292785645,
+    "tier5": 3.754000186920166,
+    "total": 81.30803990364075
   },
   "verification_checks": [
     {
@@ -107,7 +107,7 @@
       "name": "Optical Receiver Bit Error Rate",
       "tier": "Tier 3",
       "target_spec": "BER <= 10^-18",
-      "measured_value": "5.928e-32",
+      "measured_value": "1.149e-30",
       "threshold": "<= 1.00e-18",
       "passed": true,
       "details": "Calculated with Q=9.38 error bound"
@@ -117,7 +117,7 @@
       "name": "100 GHz Eye Diagram Opening",
       "tier": "Tier 3",
       "target_spec": "Eye Opening > 0%",
-      "measured_value": "74.47",
+      "measured_value": "73.92",
       "threshold": "> 0.0%",
       "passed": true,
       "details": "Clear binary spatial discrimination at 100 GHz"
@@ -157,7 +157,7 @@
       "name": "RRNS Single-Fault Self-Healing Recovery",
       "tier": "Tier 5",
       "target_spec": "Correction == 100.0%",
-      "measured_value": "1",
+      "measured_value": "100.0%",
       "threshold": "== 100.0%",
       "passed": true,
       "details": "2000 Monte Carlo trials with BER injection"
