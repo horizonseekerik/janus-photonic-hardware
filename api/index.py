@@ -1141,104 +1141,419 @@ def app(environ, start_response):
                         "category": "Tier 1: Optics & Photonics (MEEP FDTD)",
                         "tier": "tier1",
                         "files": [
-                            {"name": "asymmetric_16tree_sim.py", "path": "janus_mini16_sim/tier1_meep_optics/asymmetric_16tree_sim.py", "desc": "Asymmetric 16-Tree Fermat Core Optical FDTD Simulation (4 Stages, 1.61 dB Loss)"},
-                            {"name": "sb2s3_switch_cell.py", "path": "janus_mini16_sim/tier1_meep_optics/sb2s3_switch_cell.py", "desc": "3D FDTD of Sb2S3 PCM Directional Coupler Switch (0.263 dB IL, 51.9 dB ER)"},
-                            {"name": "waveguide_crossing.py", "path": "janus_mini16_sim/tier1_meep_optics/waveguide_crossing.py", "desc": "Talbot Self-Imaging MMI Waveguide Crossing (0.095 dB IL, -52.82 dB XT)"},
-                            {"name": "litao3_pockels_router.py", "path": "janus_mini16_sim/tier1_meep_optics/litao3_pockels_router.py", "desc": "100 GHz LiTaO3 Electro-Optic Pockels Modulator Tree"},
-                            {"name": "sb2s3_tolerance_monte_carlo.py", "path": "janus_mini16_sim/tier1_meep_optics/sb2s3_tolerance_monte_carlo.py", "desc": "Fabrication Tolerance & Monte Carlo Yield Analysis"},
-                            {"name": "test_tier1_all.py", "path": "janus_mini16_sim/tier1_meep_optics/test_tier1_all.py", "desc": "Tier 1 Optics Unit Test Suite & Analytical MZI / 16-Tree Solvers"},
-                            {"name": "export_touchstone.py", "path": "janus_mini16_sim/tier1_meep_optics/export_touchstone.py", "desc": "4-Port S-Parameter Touchstone (.s4p) Exporter"},
-                            {"name": "export_heat_map.py", "path": "janus_mini16_sim/tier1_meep_optics/export_heat_map.py", "desc": "Optical Heat Dissipation Q_opt(x,y,z) Exporter"}
+                            {
+                                "name": "asymmetric_16tree_sim.py",
+                                "path": "janus_mini16_sim/tier1_meep_optics/asymmetric_16tree_sim.py",
+                                "desc": "Asymmetric 16-Tree Fermat Core Optical FDTD Simulation (4 Stages, 1.61 dB Loss)"
+                            },
+                            {
+                                "name": "sb2s3_switch_cell.py",
+                                "path": "janus_mini16_sim/tier1_meep_optics/sb2s3_switch_cell.py",
+                                "desc": "3D FDTD of Sb2S3 PCM Directional Coupler Switch (0.263 dB IL, 51.9 dB ER)"
+                            },
+                            {
+                                "name": "waveguide_crossing.py",
+                                "path": "janus_mini16_sim/tier1_meep_optics/waveguide_crossing.py",
+                                "desc": "Talbot Self-Imaging MMI Waveguide Crossing (0.095 dB IL, -52.82 dB XT)"
+                            },
+                            {
+                                "name": "litao3_pockels_router.py",
+                                "path": "janus_mini16_sim/tier1_meep_optics/litao3_pockels_router.py",
+                                "desc": "100 GHz LiTaO3 Electro-Optic Pockels Modulator Tree"
+                            },
+                            {
+                                "name": "sb2s3_tolerance_monte_carlo.py",
+                                "path": "janus_mini16_sim/tier1_meep_optics/sb2s3_tolerance_monte_carlo.py",
+                                "desc": "Fabrication Tolerance & Monte Carlo Yield Analysis"
+                            },
+                            {
+                                "name": "test_tier1_all.py",
+                                "path": "janus_mini16_sim/tier1_meep_optics/test_tier1_all.py",
+                                "desc": "Tier 1 Optics Unit Test Suite & Analytical MZI / 16-Tree Solvers"
+                            },
+                            {
+                                "name": "export_touchstone.py",
+                                "path": "janus_mini16_sim/tier1_meep_optics/export_touchstone.py",
+                                "desc": "4-Port S-Parameter Touchstone (.s4p) Exporter"
+                            },
+                            {
+                                "name": "export_heat_map.py",
+                                "path": "janus_mini16_sim/tier1_meep_optics/export_heat_map.py",
+                                "desc": "Optical Heat Dissipation Q_opt(x,y,z) Exporter"
+                            }
                         ]
                     },
                     {
                         "category": "Tier 2: Thermal FEM & Multi-Stratum Stack (Elmer)",
                         "tier": "tier2",
                         "files": [
-                            {"name": "elmer_thermal_solver.py", "path": "janus_mini16_sim/tier2_elmer_thermal/elmer_thermal_solver.py", "desc": "3D Multi-Layer FEM Thermal Solver & Boundary Validator"},
-                            {"name": "gmsh_mesh_generator.py", "path": "janus_mini16_sim/tier2_elmer_thermal/gmsh_mesh_generator.py", "desc": "330 um Multi-Layer Active Stack 3D Tetrahedral Mesh Generator"},
-                            {"name": "extract_thermal_rom.py", "path": "janus_mini16_sim/tier2_elmer_thermal/extract_thermal_rom.py", "desc": "Reduced-Order Foster RC Thermal Impedance Extractor (R² = 1.000)"},
-                            {"name": "test_tier2_all.py", "path": "janus_mini16_sim/tier2_elmer_thermal/test_tier2_all.py", "desc": "Tier 2 Thermal Multi-Physics Unit Test Suite"},
-                            {"name": "case.sif", "path": "janus_mini16_sim/tier2_elmer_thermal/case.sif", "desc": "Elmer 3D Transient Heat Equation Boundary Definition"},
-                            {"name": "materials.sif", "path": "janus_mini16_sim/tier2_elmer_thermal/materials.sif", "desc": "Thermal Conductivity & Specific Heat Material Definitions"}
+                            {
+                                "name": "elmer_thermal_solver.py",
+                                "path": "janus_mini16_sim/tier2_elmer_thermal/elmer_thermal_solver.py",
+                                "desc": "3D Multi-Layer FEM Thermal Solver & Boundary Validator"
+                            },
+                            {
+                                "name": "gmsh_mesh_generator.py",
+                                "path": "janus_mini16_sim/tier2_elmer_thermal/gmsh_mesh_generator.py",
+                                "desc": "330 um Multi-Layer Active Stack 3D Tetrahedral Mesh Generator"
+                            },
+                            {
+                                "name": "extract_thermal_rom.py",
+                                "path": "janus_mini16_sim/tier2_elmer_thermal/extract_thermal_rom.py",
+                                "desc": "Reduced-Order Foster RC Thermal Impedance Extractor (R\u00b2 = 1.000)"
+                            },
+                            {
+                                "name": "test_tier2_all.py",
+                                "path": "janus_mini16_sim/tier2_elmer_thermal/test_tier2_all.py",
+                                "desc": "Tier 2 Thermal Multi-Physics Unit Test Suite"
+                            },
+                            {
+                                "name": "case.sif",
+                                "path": "janus_mini16_sim/tier2_elmer_thermal/case.sif",
+                                "desc": "Elmer 3D Transient Heat Equation Boundary Definition"
+                            },
+                            {
+                                "name": "materials.sif",
+                                "path": "janus_mini16_sim/tier2_elmer_thermal/materials.sif",
+                                "desc": "Thermal Conductivity & Specific Heat Material Definitions"
+                            }
                         ]
                     },
                     {
                         "category": "Tier 3: Mixed-Signal Circuit & Noise (Xyce / SPICE)",
                         "tier": "tier3",
                         "files": [
-                            {"name": "apd_receiver_model.py", "path": "janus_mini16_sim/tier3_xyce_circuit/apd_receiver_model.py", "desc": "Ge/Si SAC2M APD Model (M=7, 105 GHz Bandwidth)"},
-                            {"name": "strongarm_latch.py", "path": "janus_mini16_sim/tier3_xyce_circuit/strongarm_latch.py", "desc": "Clocked StrongARM Regenerative Comparator (3.5 ps latching)"},
-                            {"name": "eye_diagram_ber.py", "path": "janus_mini16_sim/tier3_xyce_circuit/eye_diagram_ber.py", "desc": "100 GHz Eye Diagram Opening (71.5%) & Dynamic BER (2.35e-37)"},
-                            {"name": "ilo_comb_lock.py", "path": "janus_mini16_sim/tier3_xyce_circuit/ilo_comb_lock.py", "desc": "50 fs Injection-Locked Oscillator Comb Receiver Clock"},
-                            {"name": "vector_fit_s_params.py", "path": "janus_mini16_sim/tier3_xyce_circuit/vector_fit_s_params.py", "desc": "Rational Vector Fitting & SPICE Subcircuit Synthesizer"},
-                            {"name": "test_tier3_all.py", "path": "janus_mini16_sim/tier3_xyce_circuit/test_tier3_all.py", "desc": "Tier 3 Mixed-Signal APD & StrongARM Test Suite"},
-                            {"name": "optical_switch_sp.cir", "path": "janus_mini16_sim/tier3_xyce_circuit/optical_switch_sp.cir", "desc": "Xyce Multi-Port Optical Switch Subcircuit Netlist"}
+                            {
+                                "name": "apd_receiver_model.py",
+                                "path": "janus_mini16_sim/tier3_xyce_circuit/apd_receiver_model.py",
+                                "desc": "Ge/Si SAC2M APD Model (M=7, 105 GHz Bandwidth)"
+                            },
+                            {
+                                "name": "strongarm_latch.py",
+                                "path": "janus_mini16_sim/tier3_xyce_circuit/strongarm_latch.py",
+                                "desc": "Clocked StrongARM Regenerative Comparator (3.5 ps latching)"
+                            },
+                            {
+                                "name": "eye_diagram_ber.py",
+                                "path": "janus_mini16_sim/tier3_xyce_circuit/eye_diagram_ber.py",
+                                "desc": "100 GHz Eye Diagram Opening (71.5%) & Dynamic BER (2.35e-37)"
+                            },
+                            {
+                                "name": "ilo_comb_lock.py",
+                                "path": "janus_mini16_sim/tier3_xyce_circuit/ilo_comb_lock.py",
+                                "desc": "50 fs Injection-Locked Oscillator Comb Receiver Clock"
+                            },
+                            {
+                                "name": "vector_fit_s_params.py",
+                                "path": "janus_mini16_sim/tier3_xyce_circuit/vector_fit_s_params.py",
+                                "desc": "Rational Vector Fitting & SPICE Subcircuit Synthesizer"
+                            },
+                            {
+                                "name": "test_tier3_all.py",
+                                "path": "janus_mini16_sim/tier3_xyce_circuit/test_tier3_all.py",
+                                "desc": "Tier 3 Mixed-Signal APD & StrongARM Test Suite"
+                            },
+                            {
+                                "name": "optical_switch_sp.cir",
+                                "path": "janus_mini16_sim/tier3_xyce_circuit/optical_switch_sp.cir",
+                                "desc": "Xyce Multi-Port Optical Switch Subcircuit Netlist"
+                            }
                         ]
                     },
                     {
-                        "category": "Tier 4: Digital CMOS RTL & CRT Synthesis (Verilog)",
+                        "category": "Tier 4: Digital CMOS RTL & Synthesis (Verilog)",
                         "tier": "tier4",
                         "files": [
-                            {"name": "rns_encoder.v", "path": "janus_mini16_sim/tier4_rtl_digital/rns_encoder.v", "desc": "100 GHz Wave-Pipelined 64-bit to 16-Channel Residue Encoder"},
-                            {"name": "crt_adder_tree.v", "path": "janus_mini16_sim/tier4_rtl_digital/crt_adder_tree.v", "desc": "8-Stage Pipelined Mixed-Radix CRT Adder Tree (80 ps latency)"},
-                            {"name": "rom_macros.v", "path": "janus_mini16_sim/tier4_rtl_digital/rom_macros.v", "desc": "Radix-16 Pre-Computed ROM Lookup Macros for Wave-Pipelined RNS"},
-                            {"name": "jir_fault_monitor.v", "path": "janus_mini16_sim/tier4_rtl_digital/jir_fault_monitor.v", "desc": "Real-Time Residue Consistency & RRNS Parity Monitor"},
-                            {"name": "janus_tier4_top.v", "path": "janus_mini16_sim/tier4_rtl_digital/janus_tier4_top.v", "desc": "Top-Level Integrated CMOS Digital Architecture Wrapper"},
-                            {"name": "tb_crt_adder_tree.v", "path": "janus_mini16_sim/tier4_rtl_digital/tb_crt_adder_tree.v", "desc": "Verilog Testbench for 12-Cycle Pipelined CRT Reconstruction"},
-                            {"name": "tb_audit_stress.v", "path": "janus_mini16_sim/tier4_rtl_digital/tb_audit_stress.v", "desc": "1,000-Vector Randomized Hardware Audit Testbench"},
-                            {"name": "tb_rns_standalone.v", "path": "janus_mini16_sim/tier4_rtl_digital/tb_rns_standalone.v", "desc": "Standalone RNS Modulo Reduction Verification Testbench"},
-                            {"name": "tb_crt_standalone.v", "path": "janus_mini16_sim/tier4_rtl_digital/tb_crt_standalone.v", "desc": "Standalone CRT Adder Tree Verification Testbench"},
-                            {"name": "tb_jir_fault_injection.v", "path": "janus_mini16_sim/tier4_rtl_digital/tb_jir_fault_injection.v", "desc": "JIR Parity Fault Injection & Detection Matrix Testbench"},
-                            {"name": "test_tier4_all.py", "path": "janus_mini16_sim/tier4_rtl_digital/test_tier4_all.py", "desc": "Tier 4 RTL Multi-Channel Verification Suite"},
-                            {"name": "rtl_synthesis_analyzer.py", "path": "janus_mini16_sim/tier4_rtl_digital/rtl_synthesis_analyzer.py", "desc": "Yosys RTL Synthesis Parser & Static Timing Closure Analyzer"},
-                            {"name": "test_crt_cocotb.py", "path": "janus_mini16_sim/tier4_rtl_digital/test_crt_cocotb.py", "desc": "Cocotb Cycle-Accurate Python-Verilog Co-Simulation Harness"}
+                            {
+                                "name": "rns_encoder.v",
+                                "path": "janus_mini16_sim/tier4_rtl_digital/rns_encoder.v",
+                                "desc": "100 GHz Wave-Pipelined 64-bit to 16-Channel Residue Encoder"
+                            },
+                            {
+                                "name": "crt_adder_tree.v",
+                                "path": "janus_mini16_sim/tier4_rtl_digital/crt_adder_tree.v",
+                                "desc": "8-Stage Pipelined Mixed-Radix CRT Adder Tree (80 ps latency)"
+                            },
+                            {
+                                "name": "rom_macros.v",
+                                "path": "janus_mini16_sim/tier4_rtl_digital/rom_macros.v",
+                                "desc": "Radix-16 Pre-Computed ROM Lookup Macros for Wave-Pipelined RNS"
+                            },
+                            {
+                                "name": "jir_fault_monitor.v",
+                                "path": "janus_mini16_sim/tier4_rtl_digital/jir_fault_monitor.v",
+                                "desc": "Real-Time Residue Consistency & RRNS Parity Monitor"
+                            },
+                            {
+                                "name": "janus_tier4_top.v",
+                                "path": "janus_mini16_sim/tier4_rtl_digital/janus_tier4_top.v",
+                                "desc": "Top-Level Integrated CMOS Digital Architecture Wrapper"
+                            },
+                            {
+                                "name": "janus_moduli_params.vh",
+                                "path": "janus_mini16_sim/tier4_rtl_digital/janus_moduli_params.vh",
+                                "desc": "Verilog Global Preprocessor Header & Hardware Parameters"
+                            },
+                            {
+                                "name": "janus_tier4_top.sdc",
+                                "path": "janus_mini16_sim/tier4_rtl_digital/janus_tier4_top.sdc",
+                                "desc": "Synopsys Design Constraints for 100 GHz Timing Closure (10 ps Period)"
+                            },
+                            {
+                                "name": "synth.ys",
+                                "path": "janus_mini16_sim/tier4_rtl_digital/synth.ys",
+                                "desc": "Yosys Open-Source Synthesis Script for CMOS Standard Cell Mapping"
+                            },
+                            {
+                                "name": "generate_moduli_constants.py",
+                                "path": "janus_mini16_sim/tier4_rtl_digital/generate_moduli_constants.py",
+                                "desc": "Verilog Header & Radix-16 ROM Table Generator"
+                            },
+                            {
+                                "name": "tb_crt_adder_tree.v",
+                                "path": "janus_mini16_sim/tier4_rtl_digital/tb_crt_adder_tree.v",
+                                "desc": "Verilog Testbench for 12-Cycle Pipelined CRT Reconstruction"
+                            },
+                            {
+                                "name": "tb_audit_stress.v",
+                                "path": "janus_mini16_sim/tier4_rtl_digital/tb_audit_stress.v",
+                                "desc": "1,000-Vector Randomized Hardware Audit Testbench"
+                            },
+                            {
+                                "name": "tb_rns_standalone.v",
+                                "path": "janus_mini16_sim/tier4_rtl_digital/tb_rns_standalone.v",
+                                "desc": "Standalone RNS Modulo Reduction Verification Testbench"
+                            },
+                            {
+                                "name": "tb_crt_standalone.v",
+                                "path": "janus_mini16_sim/tier4_rtl_digital/tb_crt_standalone.v",
+                                "desc": "Standalone CRT Adder Tree Verification Testbench"
+                            },
+                            {
+                                "name": "tb_jir_fault_injection.v",
+                                "path": "janus_mini16_sim/tier4_rtl_digital/tb_jir_fault_injection.v",
+                                "desc": "JIR Parity Fault Injection & Detection Matrix Testbench"
+                            },
+                            {
+                                "name": "test_tier4_all.py",
+                                "path": "janus_mini16_sim/tier4_rtl_digital/test_tier4_all.py",
+                                "desc": "Tier 4 RTL Multi-Channel Verification Suite"
+                            },
+                            {
+                                "name": "test_crt_constants.py",
+                                "path": "janus_mini16_sim/tier4_rtl_digital/test_crt_constants.py",
+                                "desc": "Unit Tests for Verilog Moduli & ROM Table Constants"
+                            },
+                            {
+                                "name": "test_synthesis_analyzer.py",
+                                "path": "janus_mini16_sim/tier4_rtl_digital/test_synthesis_analyzer.py",
+                                "desc": "Unit Tests for Yosys Gate & Area Parser"
+                            },
+                            {
+                                "name": "rtl_synthesis_analyzer.py",
+                                "path": "janus_mini16_sim/tier4_rtl_digital/rtl_synthesis_analyzer.py",
+                                "desc": "Yosys RTL Synthesis Parser & Static Timing Closure Analyzer"
+                            },
+                            {
+                                "name": "test_crt_cocotb.py",
+                                "path": "janus_mini16_sim/tier4_rtl_digital/test_crt_cocotb.py",
+                                "desc": "Cocotb Cycle-Accurate Python-Verilog Co-Simulation Harness"
+                            }
                         ]
                     },
                     {
                         "category": "Tier 5: Residue Number System & AI Benchmarks",
                         "tier": "tier5",
                         "files": [
-                            {"name": "benchmark_16tree_gemm.py", "path": "janus_mini16_sim/tier5_python_rns/benchmark_16tree_gemm.py", "desc": "Asymmetric 16-Tree Fermat Core GEMM Validation & Baseline Comparison"},
-                            {"name": "formal_verifier.py", "path": "janus_mini16_sim/tier5_python_rns/formal_verifier.py", "desc": "Formal Z3 SMT Mathematical Proofs (5/5 Proved)"},
-                            {"name": "moduli_generator.py", "path": "janus_mini16_sim/tier5_python_rns/moduli_generator.py", "desc": "Pairwise Coprime & QRNS Moduli Selection Engine"},
-                            {"name": "spatial_one_hot_router.py", "path": "janus_mini16_sim/tier5_python_rns/spatial_one_hot_router.py", "desc": "Spatial One-Hot Tensor Router & Signed Matrix Multiplier"},
-                            {"name": "jir_thermal_scheduler.py", "path": "janus_mini16_sim/tier5_python_rns/jir_thermal_scheduler.py", "desc": "Just-In-Time Modulus Rotation Dynamic Thermal Scheduler"},
-                            {"name": "rrns_self_healing.py", "path": "janus_mini16_sim/tier5_python_rns/rrns_self_healing.py", "desc": "Redundant RNS Fault Correction Engine (100% Single-Fault Recovery)"},
-                            {"name": "gemm_exact_benchmark.py", "path": "janus_mini16_sim/tier5_python_rns/gemm_exact_benchmark.py", "desc": "Bit-Exact Matrix Multiply Benchmark Engine (INT4 to INT64)"},
-                            {"name": "test_tier5_all.py", "path": "janus_mini16_sim/tier5_python_rns/test_tier5_all.py", "desc": "Tier 5 Comprehensive Python RNS & Formal Verification Unit Test Suite"},
-                            {"name": "ai_workload_benchmarks.py", "path": "janus_mini16_sim/tier5_python_rns/ai_workload_benchmarks.py", "desc": "LLaMA-3-8B, GPT-2, and ViT Execution Profiler"},
-                            {"name": "batch_token_packer.py", "path": "janus_mini16_sim/tier5_python_rns/batch_token_packer.py", "desc": "Multi-Head Attention & Batch MLP Spatial Token Packer"},
-                            {"name": "gpu_comparator.py", "path": "janus_mini16_sim/tier5_python_rns/gpu_comparator.py", "desc": "Throughput & Energy Scaling Comparator vs NVIDIA H100 / B200"}
+                            {
+                                "name": "benchmark_16tree_gemm.py",
+                                "path": "janus_mini16_sim/tier5_python_rns/benchmark_16tree_gemm.py",
+                                "desc": "Asymmetric 16-Tree Fermat Core GEMM Validation & Baseline Comparison"
+                            },
+                            {
+                                "name": "formal_verifier.py",
+                                "path": "janus_mini16_sim/tier5_python_rns/formal_verifier.py",
+                                "desc": "Formal Z3 SMT Mathematical Proofs (5/5 Proved)"
+                            },
+                            {
+                                "name": "moduli_generator.py",
+                                "path": "janus_mini16_sim/tier5_python_rns/moduli_generator.py",
+                                "desc": "Pairwise Coprime & QRNS Moduli Selection Engine"
+                            },
+                            {
+                                "name": "spatial_one_hot_router.py",
+                                "path": "janus_mini16_sim/tier5_python_rns/spatial_one_hot_router.py",
+                                "desc": "Spatial One-Hot Tensor Router & Signed Matrix Multiplier"
+                            },
+                            {
+                                "name": "jir_thermal_scheduler.py",
+                                "path": "janus_mini16_sim/tier5_python_rns/jir_thermal_scheduler.py",
+                                "desc": "Just-In-Time Modulus Rotation Dynamic Thermal Scheduler"
+                            },
+                            {
+                                "name": "rrns_self_healing.py",
+                                "path": "janus_mini16_sim/tier5_python_rns/rrns_self_healing.py",
+                                "desc": "Redundant RNS Fault Correction Engine (100% Single-Fault Recovery)"
+                            },
+                            {
+                                "name": "gemm_exact_benchmark.py",
+                                "path": "janus_mini16_sim/tier5_python_rns/gemm_exact_benchmark.py",
+                                "desc": "Bit-Exact Matrix Multiply Benchmark Engine (INT4 to INT64)"
+                            },
+                            {
+                                "name": "test_tier5_all.py",
+                                "path": "janus_mini16_sim/tier5_python_rns/test_tier5_all.py",
+                                "desc": "Tier 5 Comprehensive Python RNS & Formal Verification Unit Test Suite"
+                            },
+                            {
+                                "name": "ai_workload_benchmarks.py",
+                                "path": "janus_mini16_sim/tier5_python_rns/ai_workload_benchmarks.py",
+                                "desc": "LLaMA-3-8B, GPT-2, and ViT Execution Profiler"
+                            },
+                            {
+                                "name": "batch_token_packer.py",
+                                "path": "janus_mini16_sim/tier5_python_rns/batch_token_packer.py",
+                                "desc": "Multi-Head Attention & Batch MLP Spatial Token Packer"
+                            },
+                            {
+                                "name": "gpu_comparator.py",
+                                "path": "janus_mini16_sim/tier5_python_rns/gpu_comparator.py",
+                                "desc": "Throughput & Energy Scaling Comparator vs NVIDIA H100 / B200"
+                            }
                         ]
                     },
                     {
                         "category": "Master Orchestrator & Configurations",
                         "tier": "orchestrator",
                         "files": [
-                            {"name": "master_orchestrator.py", "path": "janus_mini16_sim/orchestrator/master_orchestrator.py", "desc": "Master Co-Simulation Coordinator & 16-Point Sign-Off Decision Tree"},
-                            {"name": "run_mini16_full_cosim.py", "path": "janus_mini16_sim/run_mini16_full_cosim.py", "desc": "Master Full-Co-Simulation Automated CLI Runner"},
-                            {"name": "test_orchestrator.py", "path": "janus_mini16_sim/orchestrator/test_orchestrator.py", "desc": "Master Orchestrator Verification Suite"},
-                            {"name": "check.py", "path": "janus_mini16_sim/check.py", "desc": "Full 5-Tier Verification & Diagnostic Self-Test Suite"},
-                            {"name": "mini_16t_constants.py", "path": "janus_mini16_sim/configs/mini_16t_constants.py", "desc": "Immutable Simulation Physical Constants & Microarchitectural Spec Registry"},
-                            {"name": "mini_16t_specs.json", "path": "janus_mini16_sim/configs/mini_16t_specs.json", "desc": "Machine-Readable Hardware Constants Specification Database"}
+                            {
+                                "name": "master_orchestrator.py",
+                                "path": "janus_mini16_sim/orchestrator/master_orchestrator.py",
+                                "desc": "Master Co-Simulation Coordinator & 16-Point Sign-Off Decision Tree"
+                            },
+                            {
+                                "name": "run_mini16_full_cosim.py",
+                                "path": "janus_mini16_sim/run_mini16_full_cosim.py",
+                                "desc": "Master Full-Co-Simulation Automated CLI Runner"
+                            },
+                            {
+                                "name": "test_orchestrator.py",
+                                "path": "janus_mini16_sim/orchestrator/test_orchestrator.py",
+                                "desc": "Master Orchestrator Verification Suite"
+                            },
+                            {
+                                "name": "check.py",
+                                "path": "janus_mini16_sim/check.py",
+                                "desc": "Full 5-Tier Verification & Diagnostic Self-Test Suite"
+                            },
+                            {
+                                "name": "mini_16t_constants.py",
+                                "path": "janus_mini16_sim/configs/mini_16t_constants.py",
+                                "desc": "Immutable Simulation Physical Constants & Microarchitectural Spec Registry"
+                            },
+                            {
+                                "name": "mini_16t_specs.json",
+                                "path": "janus_mini16_sim/configs/mini_16t_specs.json",
+                                "desc": "Machine-Readable Hardware Constants Specification Database"
+                            },
+                            {
+                                "name": "moduli.json",
+                                "path": "janus_mini16_sim/configs/moduli.json",
+                                "desc": "Pre-Computed Pairwise Coprime & QRNS Moduli Database"
+                            },
+                            {
+                                "name": "README.md",
+                                "path": "janus_mini16_sim/README.md",
+                                "desc": "Project JANUS 16-Tile Simulation Suite Comprehensive Guide"
+                            },
+                            {
+                                "name": "requirements.txt",
+                                "path": "janus_mini16_sim/requirements.txt",
+                                "desc": "Simulation Stack Python Dependencies & Libraries"
+                            }
                         ]
                     },
                     {
                         "category": "AI Benchmarks & Profiling Scripts",
                         "tier": "benchmarks",
                         "files": [
-                            {"name": "run_ai_profiling.py", "path": "janus_mini16_sim/benchmarks/run_ai_profiling.py", "desc": "Standalone AI Workload Profiling & Model Evaluation CLI Runner"},
-                            {"name": "test_ai_profiling.py", "path": "janus_mini16_sim/benchmarks/test_ai_profiling.py", "desc": "AI Workload Layer-by-Layer Verification Test Harness"},
-                            {"name": "export_simulation_field_plots.py", "path": "janus_mini16_sim/benchmarks/export_simulation_field_plots.py", "desc": "Simulation Wave & Thermal Field Plot Exporter"},
-                            {"name": "AI_BENCHMARK_REPORT.md", "path": "janus_mini16_sim/AI_BENCHMARK_REPORT.md", "desc": "Comprehensive Hardware Benchmark vs NVIDIA H100 / B200"}
+                            {
+                                "name": "run_ai_profiling.py",
+                                "path": "janus_mini16_sim/benchmarks/run_ai_profiling.py",
+                                "desc": "Standalone AI Workload Profiling & Model Evaluation CLI Runner"
+                            },
+                            {
+                                "name": "test_ai_profiling.py",
+                                "path": "janus_mini16_sim/benchmarks/test_ai_profiling.py",
+                                "desc": "AI Workload Layer-by-Layer Verification Test Harness"
+                            },
+                            {
+                                "name": "test_batch_packing.py",
+                                "path": "janus_mini16_sim/benchmarks/test_batch_packing.py",
+                                "desc": "Spatial Token Packing & Multi-Head Attention Verification Harness"
+                            },
+                            {
+                                "name": "export_simulation_field_plots.py",
+                                "path": "janus_mini16_sim/benchmarks/export_simulation_field_plots.py",
+                                "desc": "Simulation Wave & Thermal Field Plot Exporter"
+                            },
+                            {
+                                "name": "AI_BENCHMARK_REPORT.md",
+                                "path": "janus_mini16_sim/AI_BENCHMARK_REPORT.md",
+                                "desc": "Comprehensive Hardware Benchmark vs NVIDIA H100 / B200"
+                            },
+                            {
+                                "name": "JANUS_MINI16_VERIFICATION_REPORT.md",
+                                "path": "janus_mini16_sim/orchestrator/artifacts/JANUS_MINI16_VERIFICATION_REPORT.md",
+                                "desc": "Master 16-Point Verification Sign-Off Report"
+                            }
                         ]
                     },
                     {
-                        "category": "Architecture Specification",
+                        "category": "Physical Layout & Packaging (GDS II)",
+                        "tier": "layout",
+                        "files": [
+                            {
+                                "name": "README.md",
+                                "path": "janus_mini16_sim/layout/README.md",
+                                "desc": "GDS II Photonic Layout & Micro-Packaging Architecture Specification"
+                            }
+                        ]
+                    },
+                    {
+                        "category": "Architecture Specifications & Whitepapers",
                         "tier": "architecture",
                         "files": [
-                            {"name": "JANUS_ASYMMETRIC_16TREE_ARCHITECTURE.md", "path": "JANUS_ASYMMETRIC_16TREE_ARCHITECTURE.md", "desc": "Formal Specification of the Asymmetric 16-Tree Fermat Permutation Fabric"}
+                            {
+                                "name": "JANUS_ASYMMETRIC_16TREE_ARCHITECTURE.md",
+                                "path": "JANUS_ASYMMETRIC_16TREE_ARCHITECTURE.md",
+                                "desc": "Formal Specification of the Asymmetric 16-Tree Fermat Permutation Fabric"
+                            },
+                            {
+                                "name": "README.md",
+                                "path": "README.md",
+                                "desc": "Project JANUS Master Hardware Repository Overview"
+                            },
+                            {
+                                "name": "PCM_MATERIAL_SELECTION_RATIONALE.md",
+                                "path": "paper_latex/PCM_MATERIAL_SELECTION_RATIONALE.md",
+                                "desc": "Phase-Change Material Selection & Figure-of-Merit Rationale"
+                            },
+                            {
+                                "name": "JANUS_MINI_16T_CO_SIMULATION_SPEC.md",
+                                "path": "public/documentation_reports/JANUS_MINI_16T_CO_SIMULATION_SPEC.md",
+                                "desc": "Full Co-Simulation Technical Specification"
+                            },
+                            {
+                                "name": "JANUS_MINI_16T_ALGORITHMS_AND_FLOWCHARTS.md",
+                                "path": "public/documentation_reports/JANUS_MINI_16T_ALGORITHMS_AND_FLOWCHARTS.md",
+                                "desc": "16-Tree Fermat Algorithms & Architectural Flowcharts"
+                            },
+                            {
+                                "name": "PROJECT_JANUS_STRATEGIC_ROADMAP.md",
+                                "path": "public/documentation_reports/PROJECT_JANUS_STRATEGIC_ROADMAP.md",
+                                "desc": "Master Engineering Roadmap & Foundational Milestones"
+                            }
                         ]
                     }
                 ]
