@@ -870,6 +870,14 @@
       border-radius: 4px;
       font-weight: 700;
     }
+    .badge-fail {
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-weight: 700;
+    }
 
     /* Stat cards */
     .stat-box {
@@ -5789,22 +5797,37 @@
 
       const summaryEl = document.getElementById('int-summary');
       if (summaryEl) {
+        const numActive = res.num_active_tiles !== undefined ? res.num_active_tiles : 2;
+        const numGated = res.num_gated_tiles !== undefined ? res.num_gated_tiles : (16 - numActive);
+        const energySaved = res.energy_saved_pct !== undefined ? res.energy_saved_pct : (numGated / 16 * 100);
+        const isMatch = !!res.is_match;
+
+        let overflowWarning = '';
+        if (!isMatch) {
+          overflowWarning = `
+            <div style="margin-top:6px; padding:6px 10px; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.4); border-radius:6px; color:#f87171; font-size:0.78rem; line-height:1.4;">
+              ⚠️ <b>Dynamic Range Overflow:</b> Input value requires <b>${res.bit_range} bits</b>, but 16 tiles provide up to <b>81.2 bits</b> (lowest moduli) / <b>124.7 bits</b> (full moduli). In RNS arithmetic, inputs larger than M<sub>total</sub> naturally wrap modulo M<sub>total</sub>. Single-cycle exact reconstruction requires additional tiles (e.g. 24–32 tiles in Datacenter mode).
+            </div>
+          `;
+        }
+
         summaryEl.innerHTML = `
           <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:4px;">
             <div><b>Input:</b> ${res.input_hex || '0x0'} (${res.input_decimal_str || res.input_decimal || rawVal})</div>
             <div><b>Bit-Range Detected:</b> <span class="badge-pass" style="font-size:0.75rem;">${res.bit_range || 9} bits</span></div>
           </div>
           <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:4px;">
-            <div><b>Active Tiles:</b> <b style="color:var(--accent-cyan); font-weight:700;">${res.num_active_tiles || 2} / 16</b> (${res.num_gated_tiles || 14} Power-Gated)</div>
-            <div><b>Dynamic Energy Saved:</b> <b style="color:var(--accent-green); font-weight:700;">${res.energy_saved_pct || 87.5}%</b></div>
+            <div><b>Active Tiles:</b> <b style="color:var(--accent-cyan); font-weight:700;">${numActive} / 16</b> (${numGated} Power-Gated)</div>
+            <div><b>Dynamic Energy Saved:</b> <b style="color:var(--accent-green); font-weight:700;">${energySaved.toFixed(1)}%</b></div>
           </div>
           <div style="margin-bottom:4px;">
             <b>Selected Moduli (Lowest Coprime):</b> [${res.active_moduli_display || (res.active_moduli ? res.active_moduli.join(', ') : '16, 17')}] &rarr; M<sub>total</sub> = ${res.dynamic_range_display || '272'}
           </div>
           <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; border-top:1px solid var(--card-border); padding-top:4px; margin-top:4px;">
             <div><b>Reconstructed:</b> ${res.reconstructed_hex || '0x0'} (${res.reconstructed_str || res.reconstructed || '0'})</div>
-            <div><b>Sign-Off:</b> <span class="badge-pass">${res.is_match ? '✓ BIT-EXACT (0 Error)' : '✗ MISMATCH'}</span></div>
+            <div><b>Sign-Off:</b> <span class="${isMatch ? 'badge-pass' : 'badge-fail'}">${isMatch ? '✓ BIT-EXACT (0 Error)' : '✗ OVERFLOW (Wrapped Modulo M_total)'}</span></div>
           </div>
+          ${overflowWarning}
         `;
       }
 
@@ -5931,22 +5954,37 @@
 
       const summaryEl = document.getElementById('mult-summary');
       if (summaryEl) {
+        const numActive = res.num_active_tiles !== undefined ? res.num_active_tiles : 2;
+        const numGated = res.num_gated_tiles !== undefined ? res.num_gated_tiles : (16 - numActive);
+        const energySaved = res.energy_saved_pct !== undefined ? res.energy_saved_pct : (numGated / 16 * 100);
+        const isMatch = !!res.is_match;
+
+        let overflowWarning = '';
+        if (!isMatch) {
+          overflowWarning = `
+            <div style="margin-top:6px; padding:6px 10px; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.4); border-radius:6px; color:#f87171; font-size:0.78rem; line-height:1.4;">
+              ⚠️ <b>Dynamic Range Overflow:</b> Product requires <b>${res.bit_range} bits</b>, but 16 tiles with these lowest coprime moduli provide <b>≈ 81.2 bits</b> (M<sub>total</sub> = ${res.dynamic_range_display}). In RNS arithmetic, products larger than M<sub>total</sub> naturally wrap modulo M<sub>total</sub> (${res.expected_product_str} mod M<sub>total</sub> = ${res.reconstructed_product_str}). Single-cycle exact reconstruction of 130 bits requires <b>24 active optical tiles</b> (or 32-Tile Datacenter configuration, which supports up to 239 bits).
+            </div>
+          `;
+        }
+
         summaryEl.innerHTML = `
           <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:4px;">
             <div><b>Operation:</b> ${res.operand_A_str || rawA} &times; ${res.operand_B_str || rawB} = <b>${res.expected_product_str || res.expected_product}</b></div>
             <div><b>Bit-Range Detected:</b> <span class="badge-pass" style="font-size:0.75rem;">${res.bit_range || 9} bits</span></div>
           </div>
           <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:4px;">
-            <div><b>Active Optical Tiles:</b> <b style="color:var(--accent-cyan); font-weight:700;">${res.num_active_tiles || 2} / 16</b> (${res.num_gated_tiles || 14} Power-Gated)</div>
-            <div><b>Dynamic Energy Saved:</b> <b style="color:var(--accent-green); font-weight:700;">${res.energy_saved_pct || 87.5}%</b></div>
+            <div><b>Active Optical Tiles:</b> <b style="color:var(--accent-cyan); font-weight:700;">${numActive} / 16</b> (${numGated} Power-Gated)</div>
+            <div><b>Dynamic Energy Saved:</b> <b style="color:var(--accent-green); font-weight:700;">${energySaved.toFixed(1)}%</b></div>
           </div>
           <div style="margin-bottom:4px;">
             <b>Selected Moduli (Lowest Coprime):</b> [${res.active_moduli_display || (res.active_moduli ? res.active_moduli.join(', ') : '16, 17')}] &rarr; M<sub>total</sub> = ${res.dynamic_range_display || '272'}
           </div>
           <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; border-top:1px solid var(--card-border); padding-top:4px; margin-top:4px;">
             <div><b>Reconstructed Product:</b> ${res.reconstructed_product_str || res.reconstructed_product} (${res.product_hex || ''})</div>
-            <div><b>Sign-Off:</b> <span class="badge-pass">${res.is_match ? '✓ BIT-EXACT 0-ERROR CRT' : '✗ MISMATCH'}</span></div>
+            <div><b>Sign-Off:</b> <span class="${isMatch ? 'badge-pass' : 'badge-fail'}">${isMatch ? '✓ BIT-EXACT 0-ERROR CRT' : '✗ OVERFLOW (Wrapped Modulo M_total)'}</span></div>
           </div>
+          ${overflowWarning}
         `;
       }
 

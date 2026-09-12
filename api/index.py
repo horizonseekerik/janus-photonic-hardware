@@ -206,7 +206,9 @@ class FallbackOrchestrator:
         crt_steps.append("=== CRT Adder Tree Dynamic Reconstruction ===")
         crt_steps.append(f"Raw Adder-Tree Sum  = {running_sum:,}")
         crt_steps.append(f"Reconstructed Value = {reconstructed:,}")
-        crt_steps.append(f"Sign-Off Status     = {'[PASS] BIT-EXACT MATCH (0 error)' if is_match else '[FAIL] MISMATCH'}")
+        crt_steps.append(f"Sign-Off Status     = {'[PASS] BIT-EXACT MATCH (0 error)' if is_match else '[FAIL] DYNAMIC RANGE OVERFLOW (Wrapped Modulo M_total)'}")
+        if not is_match:
+            crt_steps.append(f"Warning             : Input ({bit_range} bits) exceeds M_total ({math.log2(M_total):.1f} bits). Single-cycle exact reconstruction requires {math.ceil(bit_range/5.5)} active channels (or 32-Tile Datacenter mode).")
 
         return {
             "input_decimal": str(val),
@@ -333,7 +335,9 @@ class FallbackOrchestrator:
         crt_steps.append("=== CRT Adder Tree Dynamic Reconstruction ===")
         crt_steps.append(f"Reconstructed Product = {reconstructed:,}")
         crt_steps.append(f"Arithmetic Deviation  = {abs(reconstructed - product)}")
-        crt_steps.append(f"Sign-Off Status       = {'[PASS] BIT-EXACT 0-ERROR RECONSTRUCTION' if is_match else '[FAIL] MISMATCH'}")
+        crt_steps.append(f"Sign-Off Status       = {'[PASS] BIT-EXACT 0-ERROR RECONSTRUCTION' if is_match else '[FAIL] DYNAMIC RANGE OVERFLOW (Wrapped Modulo M_total)'}")
+        if not is_match:
+            crt_steps.append(f"Warning               : Product ({bit_range} bits) exceeds M_total ({math.log2(M_total):.1f} bits). Single-cycle exact reconstruction requires {math.ceil(bit_range/5.5)} active channels (or 32-Tile Datacenter mode).")
 
         return {
             "a": str(a),
