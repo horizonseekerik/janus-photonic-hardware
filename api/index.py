@@ -844,7 +844,11 @@ def app(environ, start_response):
                         "category": "Tier 1: Optics & Photonics (MEEP FDTD)",
                         "tier": "tier1",
                         "files": [
+                            {"name": "asymmetric_15tree_sim.py", "path": "janus_mini16_sim/tier1_meep_optics/asymmetric_15tree_sim.py", "desc": "Asymmetric 16-Tree Fermat Core Optical FDTD Simulation (4 Stages, 1.61 dB Loss)"},
                             {"name": "sb2s3_switch_cell.py", "path": "janus_mini16_sim/tier1_meep_optics/sb2s3_switch_cell.py", "desc": "3D FDTD of Sb2S3 PCM Directional Coupler Switch (0.263 dB IL, 51.9 dB ER)"},
+                            {"name": "directional_coupler.py", "path": "janus_mini16_sim/tier1_meep_optics/directional_coupler.py", "desc": "Sb2S3 Directional Coupler 3D MEEP FDTD Solver"},
+                            {"name": "mmi_tree.py", "path": "janus_mini16_sim/tier1_meep_optics/mmi_tree.py", "desc": "MMI 1x16 Optical Tree Fan-Out Splitter"},
+                            {"name": "phase_shifter_pcm.py", "path": "janus_mini16_sim/tier1_meep_optics/phase_shifter_pcm.py", "desc": "Sb2S3 Phase-Change Optical Phase Shifter"},
                             {"name": "waveguide_crossing.py", "path": "janus_mini16_sim/tier1_meep_optics/waveguide_crossing.py", "desc": "Talbot Self-Imaging MMI Waveguide Crossing (0.095 dB IL, -52.82 dB XT)"},
                             {"name": "litao3_pockels_router.py", "path": "janus_mini16_sim/tier1_meep_optics/litao3_pockels_router.py", "desc": "100 GHz LiTaO3 Electro-Optic Pockels Modulator Tree"},
                             {"name": "sb2s3_tolerance_monte_carlo.py", "path": "janus_mini16_sim/tier1_meep_optics/sb2s3_tolerance_monte_carlo.py", "desc": "Fabrication Tolerance & Monte Carlo Yield Analysis"},
@@ -896,7 +900,8 @@ def app(environ, start_response):
                         "category": "Tier 5: Residue Number System & AI Benchmarks",
                         "tier": "tier5",
                         "files": [
-                            {"name": "formal_verifier.py", "path": "janus_mini16_sim/tier5_python_rns/formal_verifier.py", "desc": "Formal Z3 SMT Mathematical Proofs (4/4 Proved)"},
+                            {"name": "benchmark_15tree_gemm.py", "path": "janus_mini16_sim/tier5_python_rns/benchmark_15tree_gemm.py", "desc": "Asymmetric 16-Tree Fermat Core GEMM Validation & Baseline Comparison"},
+                            {"name": "formal_verifier.py", "path": "janus_mini16_sim/tier5_python_rns/formal_verifier.py", "desc": "Formal Z3 SMT Mathematical Proofs (5/5 Proved)"},
                             {"name": "moduli_generator.py", "path": "janus_mini16_sim/tier5_python_rns/moduli_generator.py", "desc": "Pairwise Coprime & QRNS Moduli Selection Engine"},
                             {"name": "spatial_one_hot_router.py", "path": "janus_mini16_sim/tier5_python_rns/spatial_one_hot_router.py", "desc": "Spatial One-Hot Tensor Router & Signed Matrix Multiplier"},
                             {"name": "jir_thermal_scheduler.py", "path": "janus_mini16_sim/tier5_python_rns/jir_thermal_scheduler.py", "desc": "Just-In-Time Modulus Rotation Dynamic Thermal Scheduler"},
@@ -912,6 +917,8 @@ def app(environ, start_response):
                         "tier": "orchestrator",
                         "files": [
                             {"name": "master_orchestrator.py", "path": "janus_mini16_sim/orchestrator/master_orchestrator.py", "desc": "Master Co-Simulation Coordinator & 16-Point Sign-Off Decision Tree"},
+                            {"name": "run_mini16_full_cosim.py", "path": "janus_mini16_sim/run_mini16_full_cosim.py", "desc": "Master Full-Co-Simulation Automated CLI Runner"},
+                            {"name": "check.py", "path": "janus_mini16_sim/check.py", "desc": "Full 5-Tier Verification & Diagnostic Self-Test Suite"},
                             {"name": "mini_16t_constants.py", "path": "janus_mini16_sim/configs/mini_16t_constants.py", "desc": "Immutable Simulation Physical Constants & Microarchitectural Spec Registry"},
                             {"name": "mini_16t_specs.json", "path": "janus_mini16_sim/configs/mini_16t_specs.json", "desc": "Machine-Readable Hardware Constants Specification Database"}
                         ]
@@ -922,6 +929,13 @@ def app(environ, start_response):
                         "files": [
                             {"name": "run_ai_profiling.py", "path": "janus_mini16_sim/benchmarks/run_ai_profiling.py", "desc": "Standalone AI Workload Profiling & Model Evaluation CLI Runner"},
                             {"name": "export_simulation_field_plots.py", "path": "janus_mini16_sim/benchmarks/export_simulation_field_plots.py", "desc": "Simulation Wave & Thermal Field Plot Exporter"}
+                        ]
+                    },
+                    {
+                        "category": "Architecture Specification",
+                        "tier": "architecture",
+                        "files": [
+                            {"name": "JANUS_ASYMMETRIC_15TREE_ARCHITECTURE.md", "path": "JANUS_ASYMMETRIC_15TREE_ARCHITECTURE.md", "desc": "Formal Specification of the Asymmetric 16-Tree Fermat Permutation Fabric"}
                         ]
                     }
                 ]
