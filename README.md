@@ -85,8 +85,12 @@ Janus Update/
 ├── run_dashboard.py                           # Dedicated zero-dependency local WSGI runner
 ├── start_dashboard.vbs                        # Background launcher script for Windows
 ├── JANUS_IEEE_Manuscript.pdf                  # Complete 39-page formally verified IEEE manuscript
-├── JANUS_Mini16_Simulation_Report.pdf         # Multi-physics co-simulation sign-off report
+├── JANUS_Mini16_Simulation_Report.pdf         # Multi-physics co-simulation sign-off report (9-Page with GDS II)
 ├── JANUS_Mini16_CMOS_Architecture.pdf         # CMOS digital backend & silicon blueprint
+├── janus_mini16_layout.gds                    # Tapeout-grade photonic 3D top-die GDS II mask (955 KB)
+├── janus_mini16_cmos_base_layout.gds          # 65nm CMOS digital base-die GDS II mask (169 KB)
+├── janus_mini16_layout.lyp                    # KLayout layer properties & styling definition
+├── fig_gds_die_and_tile_floorplan.png         # 300 DPI composite full-die & single-tile mask floorplan
 ├── main.pdf                                   # Compiled root manuscript
 ├── deep-research-report.md                    # In-depth architectural synthesis research report
 ├── apple-touch-icon.png                       # iOS / Mobile web app icon
@@ -115,6 +119,15 @@ Janus Update/
 │   │   ├── mini_16t_constants.py              # Physical parameters (materials, losses, 16-tree specs)
 │   │   ├── mini_16t_specs.json                # JSON specification dictionary for 16-tile MVP
 │   │   └── moduli.json                        # Dynamic coprime moduli sets & optical cluster config
+│   │
+│   ├── layout/                                # Physical Mask Layout & Micro-Packaging (GDS II)
+│   │   ├── generate_mini16_gds.py             # Automated 3D monolithic photonic top-die GDS II synthesizer
+│   │   ├── generate_cmos_base_gds.py          # Automated 65nm CMOS digital base-die GDS II synthesizer
+│   │   ├── janus_mini16_layout.gds            # 16-Tile monolithic 3D top-die GDS II stream file (955 KB)
+│   │   ├── janus_mini16_cmos_base_layout.gds  # 65nm LP/GP CMOS base-die GDS II stream file (169 KB)
+│   │   ├── janus_mini16_layout.lyp            # Top-die KLayout layer properties & styling file
+│   │   ├── janus_mini16_cmos_base_layout.lyp  # CMOS base-die KLayout layer properties file
+│   │   └── README.md                          # Layout & packaging architectural specification
 │   │
 │   ├── tier1_meep_optics/                     # TIER 1: Photonic FDTD & Waveguide Solvers
 │   │   ├── asymmetric_15tree_sim.py           # 4-stage binary 16-Tree Fermat optical core solver
@@ -341,6 +354,8 @@ Project JANUS combines multi-physics photonic wave mechanics, 3D FEM thermal dif
 | **Tier 4 (Digital)** | **Icarus Verilog (`iverilog`)** | IEEE-1364 standard-compliant Verilog HDL compiler & simulation engine (`vvp`) for CRT reconstruction tree | Windows, Linux, macOS | [Icarus Verilog Official](http://iverilog.icarus.com/) |
 | **Tier 4 (Digital)** | **Cocotb** | Python-based coroutine cycle-accurate testbench verification environment for Verilog RTL | Windows, Linux, macOS | [Cocotb Documentation](https://docs.cocotb.org/en/stable/) |
 | **Tier 5 (Formal)**  | **Z3 Theorem Prover** | Microsoft Research SMT solver for formal mathematical proofs (group isomorphism, non-overflow, bijectivity) | All Platforms | [Z3 SMT Solver GitHub](https://github.com/Z3Prover/z3) |
+| **Physical Layout**  | **gdsfactory & gdstk** | Parametric cell generator & OASIS / GDS II stream synthesizer for photonic and CMOS mask sets | All Platforms | [gdsfactory Docs](https://gdsfactory.github.io/gdsfactory/) |
+| **Mask Inspection**  | **KLayout (Optional)** | Visual multi-layer GDS II / OASIS CAD viewer and DRC rule checker with companion `.lyp` files | Windows, Linux, macOS | [KLayout Official](https://www.klayout.de/) |
 | **Web / Dashboard**  | **Node.js (Optional)** | Syntax validation and tooling for single-page WebGL interactive dashboard | Windows, Linux, macOS | [Node.js Official](https://nodejs.org/) |
 
 ---
@@ -485,7 +500,18 @@ pytest janus_mini16_sim/tier4_rtl_digital/test_tier4_all.py -v
 pytest janus_mini16_sim/tier5_python_rns/test_tier5_all.py -v
 ```
 
-### 5. Launching the Interactive Local Web Dashboard
+### 5. Synthesizing Physical GDS II Stream Files
+Synthesize the tapeout-ready physical mask layout streams for both strata:
+```bash
+# Synthesize 3D Photonic Top Die GDS II (Si3N4, LiTaO3, Sb2S3 16-Tree, SAC2M APDs, Cu TDVs)
+python janus_mini16_sim/layout/generate_mini16_gds.py
+
+# Synthesize 65nm LP/GP CMOS Digital Base Die GDS II (StrongARM, Deserializers, SIMD, Dual-LUT SRAM)
+python janus_mini16_sim/layout/generate_cmos_base_gds.py
+```
+Outputs `janus_mini16_layout.gds` (955 KB) and `janus_mini16_cmos_base_layout.gds` (169 KB) with companion `.lyp` layer styling files viewable directly in **KLayout**.
+
+### 6. Launching the Interactive Local Web Dashboard
 To launch the web dashboard locally:
 ```bash
 # Option A: Standard Python WSGI runner
