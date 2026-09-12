@@ -1,4 +1,4 @@
-# PROJECT JANUS: Asymmetric 15-Tree & 16-Tree Photonic Multiplier Architecture
+# PROJECT JANUS: Asymmetric 16-Tree Fermat Photonic Multiplier Architecture
 **Technical Specification, Physical Verification, and Optical-CMOS Co-Design**
 
 ---
@@ -246,7 +246,7 @@ $$E_{\text{dynamic}} = (1 - S) \cdot E_{\text{dense}}, \quad \text{Effective Thr
 
 Two simulation test benches were constructed and executed to prove physical validity and mathematical correctness.
 
-### 5.1 Exhaustive Physical Waveguide Simulation (`asymmetric_15tree_sim.py`)
+### 5.1 Exhaustive Physical Waveguide Simulation (`asymmetric_16tree_sim.py`)
 * **Framework:** Transfer Matrix Method (TMM) modeling 4-stage binary directional couplers with insertion loss ($0.40\,\text{dB}$/stage), extinction ratio ($25\,\text{dB}$), group index ($n_g = 4.0$), and waveguide propagation loss ($1.5\,\text{dB/cm}$).
 * **Results:**
   * **Exact Multiplication Truth Table:** **$256 / 256$ Correct ($100.0\%$)**.
@@ -255,7 +255,7 @@ Two simulation test benches were constructed and executed to prove physical vali
   * **Worst-Case Optical Signal-to-Crosstalk Ratio (SCR):** **$18.96\,\text{dB}$** (clean open eye, zero bit error rate).
   * **Optical Flight Delay:** **$1.33\,\text{ps}$**.
 
-### 5.2 Full Tensor Signed GEMM Contraction (`benchmark_15tree_gemm.py`)
+### 5.2 Full Tensor Signed GEMM Contraction (`benchmark_16tree_gemm.py`)
 * **Benchmark:** $16 \times 16$ signed matrix multiplication ($256$ parallel MAC operations) using the small coprime moduli set $\{16, 15, 13, 11, 7\}$ (dynamic range $M = 240,240$).
 * **Results:**
   * **Mathematical Error vs 64-bit Reference Math:** **$0$ (BIT-EXACT MATCH)**.
@@ -313,9 +313,9 @@ Two simulation test benches were constructed and executed to prove physical vali
 
 All simulation modules have been verified and added to the repository:
 
-1. [asymmetric_15tree_sim.py](file:///c:/Users/hp/Desktop/Janus%20Update/janus_mini16_sim/tier1_meep_optics/asymmetric_15tree_sim.py)
+1. [asymmetric_16tree_sim.py](file:///c:/Users/hp/Desktop/Janus%20Update/janus_mini16_sim/tier1_meep_optics/asymmetric_16tree_sim.py)
    * Standalone physical wave and switch matrix simulation (loss, delay, crosstalk, and 256-state truth table).
-2. [benchmark_15tree_gemm.py](file:///c:/Users/hp/Desktop/Janus%20Update/janus_mini16_sim/tier5_python_rns/benchmark_15tree_gemm.py)
+2. [benchmark_16tree_gemm.py](file:///c:/Users/hp/Desktop/Janus%20Update/janus_mini16_sim/tier5_python_rns/benchmark_16tree_gemm.py)
    * End-to-end signed GEMM tensor benchmark verifying bit-exact CRT reconstruction against 64-bit reference math.
 
 

@@ -3,7 +3,7 @@ ALGORITHM 5C: SPATIAL_ONE_HOT_ROUTER
 ====================================
 Simulates spatial 1-hot tensor contractions across 16 optical tiles.
 
-Primary Architecture: Asymmetric 15-Tree binary demux core (4 stages, 225 switches,
+Primary Architecture: Asymmetric 16-Tree binary demux core (4 stages, 240 switches,
 O(1) weight programming via direct 4-bit binary addressing).
 
 Legacy Mode: Beneš network topology (15 stages, 1920 switches, Waksman routing)
@@ -264,7 +264,7 @@ class SpatialOneHotTile:
         """
         Computes optical spatial 1-hot tensor products C[i, j, k] = (A[i, k] * B[k, j]) % m.
 
-        Primary path (15-Tree): Uses precomputed static transfer maps. O(1) per lookup.
+        Primary path (16-Tree): Uses precomputed static transfer maps. O(1) per lookup.
         Legacy path (Beneš): Uses Waksman routing + physical switch traversal.
         """
         A_mod = (A_res % self.modulus).astype(int)
@@ -281,7 +281,7 @@ class SpatialOneHotTile:
                 # Optical zero-gating: laser off, all outputs = 0
                 optical_lut[w_int][:] = 0
             elif not self.use_benes:
-                # PRIMARY: 15-Tree direct binary addressing
+                # PRIMARY: 16-Tree direct binary addressing
                 # Each input x maps to detector (x * w) % m via static transfer map
                 for x in range(self.modulus):
                     optical_lut[w_int][x] = self.tree_router.route(x, w_int)
@@ -321,7 +321,7 @@ class SpatialOneHotAccelerator:
     """
     Master 16-Tile Monolithic Planar MVP Accelerator with Signed CMOS Accumulation.
     
-    Default: Uses Asymmetric 15-Tree router (4 stages, 225 switches, O(1) routing).
+    Default: Uses Asymmetric 16-Tree router (4 stages, 240 switches, O(1) routing).
     Legacy:  Set use_benes=True for 256-port Beneš comparison mode.
     """
 
@@ -382,7 +382,7 @@ if __name__ == "__main__":
     for x in range(8):
         assert routed_test[test_pi[x]] == x
 
-    # Test primary 15-Tree accelerator (default mode)
+    # Test primary 16-Tree accelerator (default mode)
     acc = SpatialOneHotAccelerator()
     acc.tiles = [SpatialOneHotTile(m, 4) for m in acc.moduli]
 
@@ -393,8 +393,8 @@ if __name__ == "__main__":
     C_opt = acc.matmul(A, B)
     C_ref = np.matmul(A.astype(object), B.astype(object))
     diff = int(np.sum(np.abs(C_opt - C_ref)))
-    print(f"15-Tree Signed Contraction Deviation: {diff} {'(PASS)' if diff == 0 else 'FAILED'}")
-    assert diff == 0, f"15-Tree signed matmul failed with deviation {diff}"
+    print(f"16-Tree Signed Contraction Deviation: {diff} {'(PASS)' if diff == 0 else 'FAILED'}")
+    assert diff == 0, f"16-Tree signed matmul failed with deviation {diff}"
 
     # Test legacy Beneš mode for comparison
     acc_benes = SpatialOneHotAccelerator(use_benes=True)

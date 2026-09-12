@@ -35,7 +35,7 @@ from configs import mini_16t_constants as cfg
 from tier1_meep_optics.sb2s3_switch_cell import Sb2S3SwitchCellMeep
 from tier1_meep_optics.waveguide_crossing import WaveguideCrossingMeep
 from tier1_meep_optics.litao3_pockels_router import LiTaO3PockelsModulatorMeep
-from tier1_meep_optics.asymmetric_15tree_sim import Asymmetric15TreeCore, Asymmetric16TreeCore, OpticalSwitchSpecs
+from tier1_meep_optics.asymmetric_16tree_sim import Asymmetric15TreeCore, Asymmetric16TreeCore, OpticalSwitchSpecs
 from tier1_meep_optics.export_touchstone import export_touchstone
 from tier1_meep_optics.export_heat_map import export_heatmap
 

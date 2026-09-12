@@ -177,6 +177,7 @@ alpha_spatial_decimal: float = 0.0588235  # Decimal spatial activity factor [T3,
 MAX_SINGLE_PRODUCT: int = 256  # 16 * 16 = 256 (strictly bounded < 257 for zero overflow) [T1, T5]
 FERMAT_MODULUS_17: int = 17  # Fermat Prime F_1 = 2^(2^1) + 1 = 17 [T5]
 FERMAT_MODULUS_257: int = 257  # Fermat Prime F_2 = 2^(2^2) + 1 = 257 [T5]
+N_switch_16tree_mult: int = 240  # 16-Tree Fermat Core switches per multiplier (16 trees x 15 switches) [T1, T5]
 N_switch_15tree_mult: int = 225  # Reference: 15-Tree baseline switches per multiplier
 
 # ==============================================================================
@@ -344,7 +345,7 @@ L_excess_total: float = 12.90  # Total excess path loss (dB) [T1]
 L_distribution_total: float = 52.03  # Total distribution loss (dB) [T1, T3]
 # IL_switch_cell: float = 0.10  # Sb2S3 switch insertion loss (dB) [T1] # COMPUTED BY TIER 1
 # ER_dilated_benes: float = 25.0  # LEGACY: Dilated Benes extinction ratio (dB) [T1]
-# NOTE: Replaced by SCR_15tree_worst_dB = 18.96 dB above
+# NOTE: Replaced by SCR_16tree_worst_dB = 18.96 dB above
 
 P_litao3_routers: float = 0.51  # LiTaO3 router power (W) [T3]
 P_apd_detectors: float = 0.16  # Ge/Si APD array power (W) [T3]
@@ -364,7 +365,7 @@ tau_fwhm_max: float = 5.0e-12  # Maximum optical pulse FWHM (s) [T1]
 t_mod: float = 10.0e-12  # EO injection pulse interval (s) [T1, T3]
 t_wire: float = 1.33e-12  # Local electrical interconnect delay (s) [T3, T4]
 t_guard: float = 3.5e-12  # Inter-pulse guard margin (s) [T1, T3]
-t_opt_tree: float = 1.33e-12  # 15-Tree 4-stage optical flight delay (1.33 ps) [T1]  # was: t_opt_benes=750ps
+t_opt_tree: float = 1.33e-12  # 16-Tree 4-stage optical flight delay (1.33 ps) [T1]  # was: t_opt_benes=750ps
 t_opt_benes: float = 750e-12  # LEGACY: 15-stage Benes propagation delay (s) [T1] — retained for comparison
 t_crt: float = 80e-12  # CRT adder-tree delay (80 ps = 8 stages @ 10 ps) [T4]
 N_crt_pipeline_stages: int = 8  # CRT pipelined adder tree stages [T4]

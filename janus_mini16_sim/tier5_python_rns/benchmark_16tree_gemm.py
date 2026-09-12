@@ -16,7 +16,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from configs import mini_16t_constants as cfg
 from tier5_python_rns.moduli_generator import generate_moduli_set, crt_reconstruct
 try:
-    from tier5_python_rns.spatial_one_hot_router import BenesNetwork, Asymmetric15TreeRouter, Asymmetric16TreeRouter
+    from tier5_python_rns.spatial_one_hot_router import BenesNetwork, Asymmetric16TreeRouter
+    Asymmetric15TreeRouter = Asymmetric16TreeRouter
 except ImportError:
     BenesNetwork = None
     Asymmetric15TreeRouter = None

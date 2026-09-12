@@ -117,26 +117,27 @@ def test_mzi_monte_carlo_yield():
 
 
 # ============================================================================
-# 15-Tree Core Tests (no MEEP required — pure optical math / physics)
 # ============================================================================
-from tier1_meep_optics.asymmetric_15tree_sim import Asymmetric15TreeCore, OpticalSwitchSpecs
+# 16-Tree Core Tests (no MEEP required — pure optical math / physics)
+# ============================================================================
+from tier1_meep_optics.asymmetric_16tree_sim import Asymmetric16TreeCore, OpticalSwitchSpecs
 
 
-def test_15tree_exhaustive_truth_table():
+def test_16tree_exhaustive_truth_table():
     """Verify all 256 (x,w) pairs in [0,15]^2 produce correct exact integer products."""
-    core = Asymmetric15TreeCore(OpticalSwitchSpecs())
+    core = Asymmetric16TreeCore(OpticalSwitchSpecs())
     errors = 0
     for x in range(16):
         for w in range(16):
             result = core.simulate_pulse(x, w)
             if not result["correct"] or result["output_channel"] != x * w:
                 errors += 1
-    assert errors == 0, f"15-Tree truth table errors: {errors}/256"
+    assert errors == 0, f"16-Tree truth table errors: {errors}/256"
 
 
-def test_15tree_modular_rns():
+def test_16tree_modular_rns():
     """Verify modular RNS multiplication across all moduli <= 17."""
-    core = Asymmetric15TreeCore(OpticalSwitchSpecs())
+    core = Asymmetric16TreeCore(OpticalSwitchSpecs())
     moduli = [17, 13, 11, 7, 5, 3]
     for m in moduli:
         for x in range(min(m, 16)):
@@ -146,18 +147,18 @@ def test_15tree_modular_rns():
                 assert result["output_channel"] == expected, f"Modular error: ({x}*{w}) mod {m} = {expected}, got {result['output_channel']}"
 
 
-def test_15tree_zero_gating():
+def test_16tree_zero_gating():
     """Verify x=0 always produces zero power (dark channel, laser gated off)."""
-    core = Asymmetric15TreeCore(OpticalSwitchSpecs())
+    core = Asymmetric16TreeCore(OpticalSwitchSpecs())
     for w in range(16):
         result = core.simulate_pulse(0, w)
         assert result["peak_power_mw"] == 0.0, f"x=0, w={w}: expected zero power, got {result['peak_power_mw']}"
         assert result["output_channel"] == 0, f"x=0, w={w}: expected output 0, got {result['output_channel']}"
 
 
-def test_15tree_insertion_loss():
-    """Verify optical insertion loss stays within 15-Tree spec (< 2.0 dB)."""
-    core = Asymmetric15TreeCore(OpticalSwitchSpecs())
+def test_16tree_insertion_loss():
+    """Verify optical insertion loss stays within 16-Tree spec (< 2.0 dB)."""
+    core = Asymmetric16TreeCore(OpticalSwitchSpecs())
     for x in range(1, 16):
         for w in range(1, 16):
             result = core.simulate_pulse(x, w)
@@ -165,9 +166,9 @@ def test_15tree_insertion_loss():
             assert il < 2.0, f"x={x}, w={w}: insertion loss {il:.2f} dB exceeds 2.0 dB"
 
 
-def test_15tree_scr():
+def test_16tree_scr():
     """Verify signal-to-crosstalk ratio meets minimum spec (>= 15 dB)."""
-    core = Asymmetric15TreeCore(OpticalSwitchSpecs())
+    core = Asymmetric16TreeCore(OpticalSwitchSpecs())
     for x in range(1, 16):
         for w in range(1, 16):
             result = core.simulate_pulse(x, w)
@@ -177,7 +178,7 @@ def test_15tree_scr():
 
 def test_16tree_fermat_z17_exhaustive():
     """Verify all 289 (x,w) pairs in Z_17 (0..16) are bit-exact (100% state efficiency)."""
-    core = Asymmetric15TreeCore(OpticalSwitchSpecs())
+    core = Asymmetric16TreeCore(OpticalSwitchSpecs())
     errors = 0
     for x in range(17):
         for w in range(17):
@@ -189,7 +190,7 @@ def test_16tree_fermat_z17_exhaustive():
 
 def test_16tree_tree16_negation():
     """Verify Tree 16 physical modular negation symmetry: 16 * w == (17 - w) mod 17."""
-    core = Asymmetric15TreeCore(OpticalSwitchSpecs())
+    core = Asymmetric16TreeCore(OpticalSwitchSpecs())
     for w in range(17):
         res = core.simulate_pulse(16, w, modulus=17)
         expected = (17 - (w % 17)) % 17
@@ -198,7 +199,7 @@ def test_16tree_tree16_negation():
 
 def test_16tree_product_ceiling():
     """Verify 16 * 16 = 256 product ceiling is strictly bounded < 257 for Z_257."""
-    core = Asymmetric15TreeCore(OpticalSwitchSpecs())
+    core = Asymmetric16TreeCore(OpticalSwitchSpecs())
     res = core.simulate_pulse(16, 16, modulus=None)
     assert res["correct"] and res["output_channel"] == 256, f"Product ceiling 16*16 must be 256, got {res['output_channel']}"
     assert res["output_channel"] < 257, "Product must be strictly < 257 for division-free reduction"
@@ -226,16 +227,16 @@ if __name__ == "__main__":
     print("  [PASS] MZI Monte Carlo Tolerance Yield")
 
     print("\nRunning 16-Tree Fermat Core tests (no MEEP required)...")
-    test_15tree_exhaustive_truth_table()
-    print("  [PASS] 15-Tree Exhaustive Truth Table (256/256)")
-    test_15tree_modular_rns()
-    print("  [PASS] 15-Tree Modular RNS Correctness")
-    test_15tree_zero_gating()
-    print("  [PASS] 15-Tree Zero-Gating")
-    test_15tree_insertion_loss()
-    print("  [PASS] 15-Tree Insertion Loss < 2.0 dB")
-    test_15tree_scr()
-    print("  [PASS] 15-Tree SCR >= 15.0 dB")
+    test_16tree_exhaustive_truth_table()
+    print("  [PASS] 16-Tree Exhaustive Truth Table (256/256)")
+    test_16tree_modular_rns()
+    print("  [PASS] 16-Tree Modular RNS Correctness")
+    test_16tree_zero_gating()
+    print("  [PASS] 16-Tree Zero-Gating")
+    test_16tree_insertion_loss()
+    print("  [PASS] 16-Tree Insertion Loss < 2.0 dB")
+    test_16tree_scr()
+    print("  [PASS] 16-Tree SCR >= 15.0 dB")
     test_16tree_fermat_z17_exhaustive()
     print("  [PASS] 16-Tree Fermat Z_17 Exhaustive (289/289)")
     test_16tree_tree16_negation()

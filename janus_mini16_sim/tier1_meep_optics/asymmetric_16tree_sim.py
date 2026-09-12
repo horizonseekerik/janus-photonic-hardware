@@ -1,9 +1,9 @@
 """
-ASYMMETRIC 15-TREE PHOTONIC CORE SIMULATOR
+ASYMMETRIC 16-TREE PHOTONIC CORE SIMULATOR
 ==========================================
 Simulates the physical optical wave propagation, switch transmission matrices,
 insertion loss, extinction ratio, and mathematical truth table for the 
-15-tree decoupled spatial one-hot multiplier architecture.
+16-tree decoupled spatial one-hot multiplier architecture.
 """
 
 import math

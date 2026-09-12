@@ -844,7 +844,7 @@ def app(environ, start_response):
                         "category": "Tier 1: Optics & Photonics (MEEP FDTD)",
                         "tier": "tier1",
                         "files": [
-                            {"name": "asymmetric_15tree_sim.py", "path": "janus_mini16_sim/tier1_meep_optics/asymmetric_15tree_sim.py", "desc": "Asymmetric 16-Tree Fermat Core Optical FDTD Simulation (4 Stages, 1.61 dB Loss)"},
+                            {"name": "asymmetric_16tree_sim.py", "path": "janus_mini16_sim/tier1_meep_optics/asymmetric_16tree_sim.py", "desc": "Asymmetric 16-Tree Fermat Core Optical FDTD Simulation (4 Stages, 1.61 dB Loss)"},
                             {"name": "sb2s3_switch_cell.py", "path": "janus_mini16_sim/tier1_meep_optics/sb2s3_switch_cell.py", "desc": "3D FDTD of Sb2S3 PCM Directional Coupler Switch (0.263 dB IL, 51.9 dB ER)"},
                             {"name": "directional_coupler.py", "path": "janus_mini16_sim/tier1_meep_optics/directional_coupler.py", "desc": "Sb2S3 Directional Coupler 3D MEEP FDTD Solver"},
                             {"name": "mmi_tree.py", "path": "janus_mini16_sim/tier1_meep_optics/mmi_tree.py", "desc": "MMI 1x16 Optical Tree Fan-Out Splitter"},
@@ -900,7 +900,7 @@ def app(environ, start_response):
                         "category": "Tier 5: Residue Number System & AI Benchmarks",
                         "tier": "tier5",
                         "files": [
-                            {"name": "benchmark_15tree_gemm.py", "path": "janus_mini16_sim/tier5_python_rns/benchmark_15tree_gemm.py", "desc": "Asymmetric 16-Tree Fermat Core GEMM Validation & Baseline Comparison"},
+                            {"name": "benchmark_16tree_gemm.py", "path": "janus_mini16_sim/tier5_python_rns/benchmark_16tree_gemm.py", "desc": "Asymmetric 16-Tree Fermat Core GEMM Validation & Baseline Comparison"},
                             {"name": "formal_verifier.py", "path": "janus_mini16_sim/tier5_python_rns/formal_verifier.py", "desc": "Formal Z3 SMT Mathematical Proofs (5/5 Proved)"},
                             {"name": "moduli_generator.py", "path": "janus_mini16_sim/tier5_python_rns/moduli_generator.py", "desc": "Pairwise Coprime & QRNS Moduli Selection Engine"},
                             {"name": "spatial_one_hot_router.py", "path": "janus_mini16_sim/tier5_python_rns/spatial_one_hot_router.py", "desc": "Spatial One-Hot Tensor Router & Signed Matrix Multiplier"},
@@ -935,7 +935,7 @@ def app(environ, start_response):
                         "category": "Architecture Specification",
                         "tier": "architecture",
                         "files": [
-                            {"name": "JANUS_ASYMMETRIC_15TREE_ARCHITECTURE.md", "path": "JANUS_ASYMMETRIC_15TREE_ARCHITECTURE.md", "desc": "Formal Specification of the Asymmetric 16-Tree Fermat Permutation Fabric"}
+                            {"name": "JANUS_ASYMMETRIC_16TREE_ARCHITECTURE.md", "path": "JANUS_ASYMMETRIC_16TREE_ARCHITECTURE.md", "desc": "Formal Specification of the Asymmetric 16-Tree Fermat Permutation Fabric"}
                         ]
                     }
                 ]

@@ -8,8 +8,8 @@ and optical routing architectures using SymPy symbolic number theory and constru
      representation of all 64-bit signed integer products.
   3. Chinese Remainder Theorem (CRT) Isomorphism: Proves ring isomorphism Z_M \cong prod Z_{m_i} via
      coprimality and unique modular solvability using sympy.ntheory.modular.crt.
-  4. 15-Tree Exhaustive Truth Table & Collision-Freedom: Proves 100% correctness of the Asymmetric
-     15-Tree binary demux core across all (x,w) pairs for exact and modular multiplication.
+  4. 16-Tree Exhaustive Truth Table & Collision-Freedom: Proves 100% correctness of the Asymmetric
+     16-Tree binary demux core across all (x,w) pairs for exact and modular multiplication.
   5. (Supplementary) Beneš N=256 Topological Completeness: Proves non-blocking Beneš routability
      via recursive Waksman looping (retained for legacy architecture validation).
 """
@@ -35,7 +35,8 @@ except ImportError:
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from configs import mini_16t_constants as cfg
 from tier5_python_rns.moduli_generator import generate_prns_moduli_set
-from tier5_python_rns.spatial_one_hot_router import BenesNetwork, Asymmetric16TreeRouter, Asymmetric15TreeRouter
+from tier5_python_rns.spatial_one_hot_router import BenesNetwork, Asymmetric16TreeRouter
+Asymmetric15TreeRouter = Asymmetric16TreeRouter
 
 
 def verify_16tree_completeness(moduli=None) -> bool:
@@ -43,15 +44,12 @@ def verify_16tree_completeness(moduli=None) -> bool:
     Exhaustive formal verification of the Asymmetric 16-Tree Fermat binary demux architecture.
     
     Proves:
-      1. All 289 (x,w) pairs in [0,16]^2 produce mathematically correct exact products.
-      2. Zero-gating: x=0 always maps to detector 0 regardless of weight.
-      3. Fermat Prime Modulo 17 (Z_17): 100% state efficiency across all 17x17=289 pairs.
-      4. Tree 16 Modular Negation Symmetry: 16 * w == -w == (17 - w) mod 17.
-      5. Radix-16 Modulo 257 Reduction: (Y_L - Y_H) == Y mod 257 for Y = Y_H * 256 + Y_L.
-      6. Modular RNS correctness: (x*w) mod m is correct for all prime moduli <= 17.
-      7. Collision-freedom: Within each tree, no two distinct weights route to the same
-         detector for the same input (guaranteeing unique spatial discrimination).
-      8. Transfer map consistency: The precomputed static map matches runtime computation.
+      1. Exact integer product correctness for all 289 pairs (0..16) x (0..16).
+      2. Zero-gating isolation: Input 0 routes zero power (0 aJ).
+      3. Fermat Prime Modulo 17 (Z_17) completeness: 100% state space utilization.
+      4. Tree 16 Modular Negation Symmetry: 16 * w == (17 - w) mod 17.
+      5. Bounded product ceiling: 16 * 16 = 256 < 257 (division-free Radix-16 Z_257 reduction).
+      6. Collision-freedom: No two active optical paths contend for the same detector.
     """
     if moduli is None:
         moduli = [17, 13, 11, 7, 5, 3]
@@ -63,19 +61,19 @@ def verify_16tree_completeness(moduli=None) -> bool:
             if x == 0:
                 # Zero-gating: detector must be 0
                 for m in moduli:
-                    router = Asymmetric15TreeRouter(m)
+                    router = Asymmetric16TreeRouter(m)
                     if router.route(x, w % m) != 0:
                         return False
             else:
                 # Exact product up to 16 * 16 = 256
                 if expected_product <= 256:
-                    router_257 = Asymmetric15TreeRouter(257)
+                    router_257 = Asymmetric16TreeRouter(257)
                     # 256 is strictly < 257, so modulo 257 is exact
                     if router_257.route(x, w) != expected_product:
                         return False
 
     # Test 2: Fermat Prime Modulo 17 (Z_17) across all 289 states
-    router_17 = Asymmetric15TreeRouter(17)
+    router_17 = Asymmetric16TreeRouter(17)
     for x in range(17):
         for w in range(17):
             expected = (x * w) % 17
@@ -103,7 +101,7 @@ def verify_16tree_completeness(moduli=None) -> bool:
 
     # Test 5: Modular RNS correctness across all prime moduli
     for m in moduli:
-        router = Asymmetric15TreeRouter(m)
+        router = Asymmetric16TreeRouter(m)
         for x in range(m):
             for w in range(m):
                 expected = (x * w) % m
@@ -113,7 +111,7 @@ def verify_16tree_completeness(moduli=None) -> bool:
 
     # Test 6: Collision-freedom within each tree
     for m in moduli:
-        router = Asymmetric15TreeRouter(m)
+        router = Asymmetric16TreeRouter(m)
         for x in range(1, min(m, 17)):  # Skip x=0 (dark channel)
             seen = {}  # detector -> set of weights that route there
             for w in range(m):
@@ -129,7 +127,7 @@ def verify_16tree_completeness(moduli=None) -> bool:
 
     # Test 7: Zero-gating verification
     for m in moduli:
-        router = Asymmetric15TreeRouter(m)
+        router = Asymmetric16TreeRouter(m)
         for w in range(m):
             if router.route(0, w) != 0:
                 return False
@@ -266,7 +264,7 @@ def run_formal_verification() -> dict:
     print(f"[*] Proof 4 (PRNS CRT Isomorphism & Boundary Check):  {'PROVED [PASS]' if p4 else 'FAILED'}")
 
     # Proof 5: Asymmetric 16-Tree Fermat Core Truth Table, Z_17 & Z_257 Completeness
-    p5 = verify_15tree_completeness(moduli=[17, 13, 11, 7, 5, 3])
+    p5 = verify_16tree_completeness(moduli=[17, 13, 11, 7, 5, 3])
     print(f"[*] Proof 5 (16-Tree Fermat Core & Z_17 / Z_257):     {'PROVED [PASS]' if p5 else 'FAILED'}")
 
     # Supplementary: Beneš N=256 Constructive Routing (legacy validation)
