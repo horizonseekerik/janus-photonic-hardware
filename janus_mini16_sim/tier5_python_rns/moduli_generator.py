@@ -307,6 +307,74 @@ def crt_reconstruct(
     return int(X_acc % M_tot)
 
 
+# Ascending pairwise coprime moduli pool (m <= 257) for dynamic power-proportional tile gating:
+COPRIME_MODULI_ASCENDING = [
+    16, 17, 19, 23, 25, 27, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67,
+    71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137,
+    139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199,
+    211, 223, 227, 229, 233, 239, 241, 251, 257
+]
+
+
+def determine_bit_range(val: int) -> int:
+    """Returns the effective bit width required for the integer magnitude."""
+    abs_v = abs(val)
+    return abs_v.bit_length() if abs_v > 0 else 1
+
+
+def select_minimal_dynamic_moduli(
+    target_value: int,
+    is_signed: bool = False,
+    max_tiles: int = 16,
+) -> Dict[str, Any]:
+    """
+    Determines the bit range of the target number/product and utilizes the 
+    minimum number of tiles required for exact arithmetic using the lowest 
+    pairwise coprime moduli possible (e.g. 16, 17, 19...) rather than 
+    activating all 16 tiles or large moduli (257, 256).
+    
+    Dynamically power-gates all unneeded tiles to 0 W dynamic power.
+    """
+    abs_val = abs(target_value)
+    bit_range = determine_bit_range(target_value)
+    
+    # Required dynamic range: signed needs M > 2 * |val|, unsigned needs M > |val|
+    needed_range = max(2, (2 * abs_val + 1) if is_signed else (abs_val + 1))
+    
+    active_moduli = []
+    curr_M = 1
+    for m in COPRIME_MODULI_ASCENDING:
+        active_moduli.append(m)
+        curr_M *= m
+        if curr_M >= needed_range and len(active_moduli) >= 1:
+            break
+        if len(active_moduli) >= max_tiles:
+            break
+            
+    num_active = len(active_moduli)
+    num_gated = max(0, max_tiles - num_active)
+    energy_saved_pct = (num_gated / max_tiles) * 100.0 if max_tiles > 0 else 0.0
+    
+    M_tot = curr_M
+    M_i = [M_tot // m for m in active_moduli]
+    N_i = [mod_inverse(M_i[i], active_moduli[i]) for i in range(num_active)]
+    
+    return {
+        "target_value": target_value,
+        "bit_range": bit_range,
+        "is_signed": is_signed,
+        "needed_range": needed_range,
+        "num_active_tiles": num_active,
+        "num_gated_tiles": num_gated,
+        "energy_saved_pct": energy_saved_pct,
+        "active_moduli": active_moduli,
+        "M_total": M_tot,
+        "M_bits": math.log2(M_tot) if M_tot > 0 else 0.0,
+        "M_i": M_i,
+        "N_i": N_i,
+    }
+
+
 if __name__ == "__main__":
     prns_info = generate_prns_moduli_set()
     print("=" * 70)

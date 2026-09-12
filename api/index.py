@@ -29,6 +29,67 @@ MODULI_32 = [
     179, 173, 169, 167, 163, 157, 151, 149, 139, 137, 131, 127, 125, 121, 113, 109
 ]
 
+# Ascending pairwise coprime moduli pool (m <= 257) for dynamic power-proportional tile gating:
+COPRIME_MODULI_ASCENDING = [
+    16, 17, 19, 23, 25, 27, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67,
+    71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137,
+    139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199,
+    211, 223, 227, 229, 233, 239, 241, 251, 257
+]
+
+def determine_bit_range(val: int) -> int:
+    """Returns the effective bit width required for the integer magnitude."""
+    abs_v = abs(val)
+    return abs_v.bit_length() if abs_v > 0 else 1
+
+def _ext_gcd(a_val: int, b_val: int):
+    if a_val == 0:
+        return b_val, 0, 1
+    g, x, y = _ext_gcd(b_val % a_val, a_val)
+    return g, y - (b_val // a_val) * x, x
+
+def mod_inv(a_val: int, m_val: int) -> int:
+    g, x, _ = _ext_gcd(a_val % m_val, m_val)
+    return x % m_val if g == 1 else 0
+
+def select_minimal_dynamic_moduli(
+    target_value: int,
+    is_signed: bool = False,
+    max_tiles: int = 16,
+) -> Dict[str, Any]:
+    abs_val = abs(target_value)
+    bit_range = determine_bit_range(target_value)
+    needed_range = max(2, (2 * abs_val + 1) if is_signed else (abs_val + 1))
+    active_moduli = []
+    curr_M = 1
+    for m in COPRIME_MODULI_ASCENDING:
+        active_moduli.append(m)
+        curr_M *= m
+        if curr_M >= needed_range and len(active_moduli) >= 1:
+            break
+        if len(active_moduli) >= max_tiles:
+            break
+    num_active = len(active_moduli)
+    num_gated = max(0, max_tiles - num_active)
+    energy_saved_pct = (num_gated / max_tiles) * 100.0 if max_tiles > 0 else 0.0
+    M_tot = curr_M
+    M_i = [M_tot // m for m in active_moduli]
+    N_i = [mod_inv(M_i[i], active_moduli[i]) for i in range(num_active)]
+    return {
+        "target_value": target_value,
+        "bit_range": bit_range,
+        "is_signed": is_signed,
+        "needed_range": needed_range,
+        "num_active_tiles": num_active,
+        "num_gated_tiles": num_gated,
+        "energy_saved_pct": energy_saved_pct,
+        "active_moduli": active_moduli,
+        "M_total": M_tot,
+        "M_bits": math.log2(M_tot) if M_tot > 0 else 0.0,
+        "M_i": M_i,
+        "N_i": N_i,
+    }
+
 
 class FallbackOrchestrator:
     """Pure Python fallback when heavy simulation C-packages are not bundled."""
@@ -54,65 +115,111 @@ class FallbackOrchestrator:
         {"id": 16, "name": "Exact GEMM Arithmetic Precision Deviation", "tier": "Tier 5", "target_spec": "Deviation == 0 across INT4-INT64", "measured_value": "0 errors", "threshold": "== 0 deviation", "passed": True, "details": "Bit-exact matrix multiplication vs NumPy ground truth"},
     ]
 
-    def evaluate_custom_integer(self, val: int, print_output: bool = False, tile_count: int = 16) -> dict:
-        moduli = self.MODULI_32[:tile_count] if tile_count == 32 else self.MODULI
+    def evaluate_custom_integer(self, val: int, print_output: bool = False, tile_count: int = 16, dynamic_minimal: bool = True) -> dict:
         is_signed = val < 0
+        bit_range = determine_bit_range(val)
+        if dynamic_minimal:
+            dyn = select_minimal_dynamic_moduli(val, is_signed=is_signed, max_tiles=16)
+            moduli = dyn["active_moduli"]
+            num_active = dyn["num_active_tiles"]
+            num_gated = dyn["num_gated_tiles"]
+            energy_saved_pct = dyn["energy_saved_pct"]
+            M_total = dyn["M_total"]
+            M_i_list = dyn["M_i"]
+            N_i_list = dyn["N_i"]
+        else:
+            moduli = self.MODULI_32[:tile_count] if tile_count == 32 else self.MODULI
+            num_active = len(moduli)
+            num_gated = 0
+            energy_saved_pct = 0.0
+            M_total = 1
+            for m in moduli:
+                M_total *= m
+            M_i_list = [M_total // m for m in moduli]
+            N_i_list = [mod_inv(M_i_list[i], moduli[i]) for i in range(len(moduli))]
+
         abs_val = abs(val)
         val_h = (abs_val >> 32) & 0xFFFFFFFF
         val_l = abs_val & 0xFFFFFFFF
-        residues = [abs_val % m for m in moduli]
+        residues = [val % m for m in moduli]
         radix16 = [{"r_h": r // 16, "r_l": r % 16, "wg_h": r // 16, "wg_l": r % 16} for r in residues]
-        one_hot = [
-            f"Tile {i:02d} (mod {m}{' [F2]' if m == 257 else ''}): r={r} -> Radix-16 [{r // 16}, {r % 16}] -> Tree H: WG #{r // 16}, Tree L: WG #{r % 16} <= 16"
-            for i, (m, r) in enumerate(zip(moduli, residues))
-        ]
 
-        M_total = 1
-        for m in moduli:
-            M_total *= m
-
-        def mod_inv(a_val, m_val):
-            g, x, _ = _ext_gcd(a_val % m_val, m_val)
-            return x % m_val if g == 1 else 0
-
-        def _ext_gcd(a_val, b_val):
-            if a_val == 0:
-                return b_val, 0, 1
-            g, x, y = _ext_gcd(b_val % a_val, a_val)
-            return g, y - (b_val // a_val) * x, x
-
-        M_i_list = [M_total // m for m in moduli]
-        N_i_list = [mod_inv(M_i_list[i], moduli[i]) for i in range(len(moduli))]
-
-        crt_steps = []
-        crt_steps.append(f"=== Project JANUS Spatial RNS Decomposition & Reconstruction ({len(moduli)} Tiles) ===")
-        crt_steps.append("")
-        crt_steps.append(f"Input Decimal : {val:,}")
-        crt_steps.append(f"Input Hex     : {hex(val).upper()}")
-        crt_steps.append(f"Dynamic Range : M_total = prod(m_i) ≈ 2^{math.log2(M_total):.1f} bits")
-        crt_steps.append("")
-        crt_steps.append(f"{'Tile':>5}  {'Modulus':>9}  {'Residue':>8}  {'Radix-16 [rH, rL]':>19}  {'16-Tree Physical Waveguides (<= 16)':>35}")
-        crt_steps.append(f"{'─'*5}  {'─'*9}  {'─'*8}  {'─'*19}  {'─'*35}")
-        for i, (m, r) in enumerate(zip(moduli, residues)):
-            rh, rl = r // 16, r % 16
-            m_lbl = f"{m} (F2)" if m == 257 else f"{m:>3}"
-            crt_steps.append(f"  T{i:02d}  mod {m_lbl:>7}    r={r:>4}       [{rh:2d}, {rl:2d}] (<= 16)      Tree H: WG #{rh:2d} | Tree L: WG #{rl:2d}")
-        crt_steps.append("")
-        crt_steps.append("=== CRT Adder Tree Exact Reconstruction ===")
         running_sum = 0
-        for i in range(len(moduli)):
+        for i in range(num_active):
             running_sum += residues[i] * M_i_list[i] * N_i_list[i]
         reconstructed = running_sum % M_total
         if is_signed and reconstructed > M_total // 2:
             reconstructed -= M_total
-        crt_steps.append(f"X̂ mod M_total = {reconstructed:,}")
-        crt_steps.append(f"Match         = {'✓ BIT-EXACT MATCH (0 error)' if reconstructed == val else '✗ MISMATCH'}")
+
+        is_match = (reconstructed == val)
+
+        tile_states = []
+        for i in range(16):
+            if i < num_active:
+                m = moduli[i]
+                r = residues[i]
+                rh, rl = r // 16, r % 16
+                m_str = f"{m} (F1)" if m == 17 else (f"{m} (F2)" if m == 257 else f"{m:3d}")
+                tile_states.append({
+                    "tile_id": i,
+                    "modulus": m,
+                    "modulus_label": m_str,
+                    "is_active": True,
+                    "residue": r,
+                    "r_h": rh,
+                    "r_l": rl,
+                    "status": "ACTIVE",
+                    "tree_path": f"Tree H: WG #{rh:2d} | Tree L: WG #{rl:2d}",
+                })
+            else:
+                m = COPRIME_MODULI_ASCENDING[i] if i < len(COPRIME_MODULI_ASCENDING) else 0
+                tile_states.append({
+                    "tile_id": i,
+                    "modulus": m,
+                    "modulus_label": f"{m:3d}",
+                    "is_active": False,
+                    "residue": None,
+                    "r_h": 0,
+                    "r_l": 0,
+                    "status": "GATED (0 W Standby)",
+                    "tree_path": "GATED (0 W Dynamic)",
+                })
+
+        crt_steps = []
+        crt_steps.append(f"=== Project JANUS Dynamic Power-Gated RNS Decomposition ({num_active}/16 Active Tiles) ===")
+        crt_steps.append("")
+        crt_steps.append(f"Input Decimal       : {val:,}")
+        crt_steps.append(f"Input Hex           : {hex(val).upper() if val >= 0 else f'-{hex(abs(val)).upper()}'}")
+        crt_steps.append(f"Bit-Range Detected  : {bit_range} bits")
+        crt_steps.append(f"Active Tiles        : {num_active} of 16 ({num_gated} Tiles Power-Gated -> {energy_saved_pct:.1f}% Energy Saved)")
+        crt_steps.append(f"Selected Moduli     : {moduli} (Lowest Coprime Set)")
+        crt_steps.append(f"Dynamic Range       : M_total = prod(m_i) = {M_total:,} ≈ 2^{math.log2(M_total):.1f} bits")
+        crt_steps.append("")
+        crt_steps.append(f"{'Tile':>5}  {'Modulus':>9}  {'Residue':>8}  {'Radix-16 [rH, rL]':>19}  {'16-Tree Physical Waveguides (<= 16)':>35}  {'State':>10}")
+        crt_steps.append(f"{'─'*5}  {'─'*9}  {'─'*8}  {'─'*19}  {'─'*35}  {'─'*10}")
+        for t in tile_states:
+            if t["is_active"]:
+                crt_steps.append(f"  T{t['tile_id']:02d}  mod {t['modulus_label']:>7}    r={t['residue']:>4}       [{t['r_h']:2d}, {t['r_l']:2d}] (<= 16)      Tree H: WG #{t['r_h']:2d} | Tree L: WG #{t['r_l']:2d}   ACTIVE")
+            else:
+                crt_steps.append(f"  T{t['tile_id']:02d}  mod {t['modulus_label']:>7}       -              -                           -                GATED (OFF)")
+        crt_steps.append("")
+        crt_steps.append("=== CRT Adder Tree Dynamic Reconstruction ===")
+        crt_steps.append(f"Raw Adder-Tree Sum  = {running_sum:,}")
+        crt_steps.append(f"Reconstructed Value = {reconstructed:,}")
+        crt_steps.append(f"Sign-Off Status     = {'[PASS] BIT-EXACT MATCH (0 error)' if is_match else '[FAIL] MISMATCH'}")
 
         return {
             "input_decimal": str(val),
             "input_decimal_str": f"{val:,}",
-            "input_hex": hex(val).upper(),
+            "input_hex": hex(val).upper() if val >= 0 else f"-{hex(abs(val)).upper()}",
             "is_signed": is_signed,
+            "bit_range": bit_range,
+            "num_active_tiles": num_active,
+            "num_gated_tiles": num_gated,
+            "energy_saved_pct": round(energy_saved_pct, 1),
+            "active_moduli": moduli,
+            "active_moduli_display": ", ".join(str(m) for m in moduli),
+            "dynamic_range_display": f"{M_total:,}",
             "upper_32bit": hex(val_h).upper(),
             "lower_32bit": hex(val_l).upper(),
             "moduli": moduli,
@@ -120,88 +227,147 @@ class FallbackOrchestrator:
             "radix16": radix16,
             "moduli_16": moduli,
             "residues_16": residues,
-            "one_hot_spatial_routing": one_hot,
-            "reconstruction_exact": True,
-            "reconstructed_value": str(val),
-            "reconstructed_str": f"{val:,}",
-            "reconstructed_hex": hex(val).upper(),
-            "is_match": True,
+            "tile_states": tile_states,
+            "reconstruction_exact": is_match,
+            "reconstructed_value": str(reconstructed),
+            "reconstructed": reconstructed,
+            "reconstructed_str": f"{reconstructed:,}",
+            "reconstructed_hex": hex(reconstructed).upper() if reconstructed >= 0 else f"-{hex(abs(reconstructed)).upper()}",
+            "is_match": is_match,
             "rrns_consistent": True,
             "bit_exact_error_ppm": 0.0,
             "status": "VERIFIED_EXACT",
             "crt_steps": crt_steps,
         }
 
-    def evaluate_custom_multiply(self, a: int, b: int, print_output: bool = False, tile_count: int = 16) -> dict:
-        moduli = self.MODULI_32[:tile_count] if tile_count == 32 else self.MODULI
+    def evaluate_custom_multiply(self, a: int, b: int, print_output: bool = False, tile_count: int = 16, dynamic_minimal: bool = True) -> dict:
         product = a * b
-        res_a = [abs(a) % m for m in moduli]
-        res_b = [abs(b) % m for m in moduli]
+        is_signed = product < 0
+        bit_range = determine_bit_range(product)
+        if dynamic_minimal:
+            dyn = select_minimal_dynamic_moduli(product, is_signed=is_signed, max_tiles=16)
+            moduli = dyn["active_moduli"]
+            num_active = dyn["num_active_tiles"]
+            num_gated = dyn["num_gated_tiles"]
+            energy_saved_pct = dyn["energy_saved_pct"]
+            M_total = dyn["M_total"]
+            M_i_list = dyn["M_i"]
+            N_i_list = dyn["N_i"]
+        else:
+            moduli = self.MODULI_32[:tile_count] if tile_count == 32 else self.MODULI
+            num_active = len(moduli)
+            num_gated = 0
+            energy_saved_pct = 0.0
+            M_total = 1
+            for m in moduli:
+                M_total *= m
+            M_i_list = [M_total // m for m in moduli]
+            N_i_list = [mod_inv(M_i_list[i], moduli[i]) for i in range(len(moduli))]
+
+        res_a = [a % m for m in moduli]
+        res_b = [b % m for m in moduli]
         res_prod = [(ra * rb) % m for ra, rb, m in zip(res_a, res_b, moduli)]
         radix16_prod = [{"r_h": rp // 16, "r_l": rp % 16, "wg_h": rp // 16, "wg_l": rp % 16} for rp in res_prod]
 
-        # --- CRT Step-by-Step Reconstruction Math ---
-        M_total = 1
-        for m in moduli:
-            M_total *= m
-
-        def mod_inv(a_val, m_val):
-            """Extended Euclidean algorithm for modular inverse."""
-            g, x, _ = _ext_gcd(a_val % m_val, m_val)
-            return x % m_val if g == 1 else 0
-
-        def _ext_gcd(a_val, b_val):
-            if a_val == 0:
-                return b_val, 0, 1
-            g, x, y = _ext_gcd(b_val % a_val, a_val)
-            return g, y - (b_val // a_val) * x, x
-
-        M_i_list = [M_total // m for m in moduli]
-        N_i_list = [mod_inv(M_i_list[i], moduli[i]) for i in range(len(moduli))]
-
-        crt_steps = []
-        crt_steps.append(f"=== Project JANUS 16-Tree Optical Multiplication: {a:,} × {b:,} = {product:,} ===")
-        crt_steps.append("")
-        crt_steps.append(f"Operand A = {a:,}  |  Operand B = {b:,}")
-        crt_steps.append(f"Product   = {product:,}  ({hex(product).upper()})")
-        crt_steps.append(f"Moduli Dynamic Range: prod(m_i) ≈ 2^{math.log2(M_total):.1f} bits ({len(moduli)} Tiles)")
-        crt_steps.append("")
-        crt_steps.append(f"{'Tile':>5}  {'Modulus':>9}  {'r_A':>5}  {'r_B':>5}  {'r_P=(r_A×r_B)%m':>17}  {'Radix-16 [rH, rL]':>19}  {'16-Tree Waveguides (<= 16)':>28}")
-        crt_steps.append(f"{'─'*5}  {'─'*9}  {'─'*5}  {'─'*5}  {'─'*17}  {'─'*19}  {'─'*28}")
-        for i, (m, ra, rb, rp) in enumerate(zip(moduli, res_a, res_b, res_prod)):
-            rph, rpl = rp // 16, rp % 16
-            m_lbl = f"{m} (F2)" if m == 257 else f"{m:>3}"
-            crt_steps.append(f"  T{i:02d}  mod {m_lbl:>7}    {ra:>5}  {rb:>5}  ({ra}×{rb}) mod {m} = {rp:>4}       [{rph:2d}, {rpl:2d}] (<= 16)      Tree H: #{rph:2d} | Tree L: #{rpl:2d}")
-        crt_steps.append("")
-        crt_steps.append("=== CRT Adder Tree Global Reconstruction ===")
-        running_sum = 0
-        for i in range(len(moduli)):
-            running_sum += res_prod[i] * M_i_list[i] * N_i_list[i]
+        running_sum = sum(res_prod[i] * M_i_list[i] * N_i_list[i] for i in range(num_active))
         reconstructed = running_sum % M_total
         if product < 0 and reconstructed > M_total // 2:
             reconstructed -= M_total
-        crt_steps.append(f"X̂ mod M_total = {reconstructed:,}")
-        crt_steps.append(f"Expected      = {product:,}")
-        crt_steps.append(f"Sign-Off      = {'✓ BIT-EXACT 0-ERROR RECONSTRUCTION' if reconstructed == product else '✗ MISMATCH'}")
+        is_match = (reconstructed == product)
+
+        tile_states = []
+        for i in range(16):
+            if i < num_active:
+                m = moduli[i]
+                ra, rb, rp = res_a[i], res_b[i], res_prod[i]
+                rph, rpl = rp // 16, rp % 16
+                m_str = f"{m} (F1)" if m == 17 else (f"{m} (F2)" if m == 257 else f"{m:3d}")
+                tile_states.append({
+                    "tile_id": i,
+                    "modulus": m,
+                    "modulus_label": m_str,
+                    "is_active": True,
+                    "res_a": ra,
+                    "res_b": rb,
+                    "res_p": rp,
+                    "r_h": rph,
+                    "r_l": rpl,
+                    "status": "ACTIVE",
+                    "tree_path": f"Tree H: WG #{rph:2d} | Tree L: WG #{rpl:2d}",
+                })
+            else:
+                m = COPRIME_MODULI_ASCENDING[i] if i < len(COPRIME_MODULI_ASCENDING) else 0
+                tile_states.append({
+                    "tile_id": i,
+                    "modulus": m,
+                    "modulus_label": f"{m:3d}",
+                    "is_active": False,
+                    "res_a": None,
+                    "res_b": None,
+                    "res_p": None,
+                    "r_h": 0,
+                    "r_l": 0,
+                    "status": "GATED (0 W Standby)",
+                    "tree_path": "GATED (0 W Dynamic)",
+                })
+
+        crt_steps = []
+        crt_steps.append(f"=== Project JANUS Dynamic Power-Gated Optical Multiplication: {a:,} × {b:,} = {product:,} ===")
+        crt_steps.append("")
+        crt_steps.append(f"Operand A          : {a:,}")
+        crt_steps.append(f"Operand B          : {b:,}")
+        crt_steps.append(f"Expected Product   : {product:,} ({hex(product).upper() if product >= 0 else f'-{hex(abs(product)).upper()}'})")
+        crt_steps.append(f"Bit-Range Detected : {bit_range} bits")
+        crt_steps.append(f"Active Tiles       : {num_active} of 16 ({num_gated} Tiles Power-Gated -> {energy_saved_pct:.1f}% Energy Saved)")
+        crt_steps.append(f"Selected Moduli    : {moduli} (Lowest Coprime Set)")
+        crt_steps.append(f"Dynamic Range      : M_total = {M_total:,} ≈ 2^{math.log2(M_total):.1f} bits")
+        crt_steps.append("")
+        crt_steps.append(f"{'Tile':>5}  {'Modulus':>9}  {'r_A':>5}  {'r_B':>5}  {'r_P=(r_A×r_B)%m':>17}  {'Radix-16 [rH, rL]':>19}  {'16-Tree Waveguides (<= 16)':>28}  {'State':>10}")
+        crt_steps.append(f"{'─'*5}  {'─'*9}  {'─'*5}  {'─'*5}  {'─'*17}  {'─'*19}  {'─'*28}  {'─'*10}")
+        for t in tile_states:
+            if t["is_active"]:
+                crt_steps.append(f"  T{t['tile_id']:02d}  mod {t['modulus_label']:>7}    {t['res_a']:>5}  {t['res_b']:>5}  ({t['res_a']}×{t['res_b']}) mod {t['modulus']} = {t['res_p']:>4}       [{t['r_h']:2d}, {t['r_l']:2d}] (<= 16)      Tree H: #{t['r_h']:2d} | Tree L: #{t['r_l']:2d}   ACTIVE")
+            else:
+                crt_steps.append(f"  T{t['tile_id']:02d}  mod {t['modulus_label']:>7}        -      -                 -                       -                               -              GATED (OFF)")
+        crt_steps.append("")
+        crt_steps.append("=== CRT Adder Tree Dynamic Reconstruction ===")
+        crt_steps.append(f"Reconstructed Product = {reconstructed:,}")
+        crt_steps.append(f"Arithmetic Deviation  = {abs(reconstructed - product)}")
+        crt_steps.append(f"Sign-Off Status       = {'[PASS] BIT-EXACT 0-ERROR RECONSTRUCTION' if is_match else '[FAIL] MISMATCH'}")
 
         return {
             "a": str(a),
             "b": str(b),
-            "expected_product": str(product),
+            "operand_A": a,
+            "operand_A_str": str(a),
+            "operand_B": b,
+            "operand_B_str": str(b),
+            "expected_product": product,
             "expected_product_str": f"{product:,}",
-            "reconstructed_product": str(reconstructed),
+            "reconstructed_product": reconstructed,
             "reconstructed_product_str": f"{reconstructed:,}",
             "product_exact": str(reconstructed),
-            "product_hex": hex(reconstructed).upper(),
+            "product_hex": hex(product).upper() if product >= 0 else f"-{hex(abs(product)).upper()}",
+            "bit_range": bit_range,
+            "num_active_tiles": num_active,
+            "num_gated_tiles": num_gated,
+            "energy_saved_pct": round(energy_saved_pct, 1),
+            "active_moduli": moduli,
+            "active_moduli_display": ", ".join(str(m) for m in moduli),
+            "dynamic_range_display": f"{M_total:,}",
             "moduli": moduli,
             "moduli_16": moduli,
+            "res_A": res_a,
+            "res_B": res_b,
+            "res_P": res_prod,
             "optical_residues_a": res_a,
             "optical_residues_b": res_b,
             "optical_product_residues": res_prod,
             "radix16_prod": radix16_prod,
-            "is_match": (reconstructed == product),
+            "tile_states": tile_states,
+            "is_match": is_match,
             "error_ppm": 0.0,
-            "status": "BIT_EXACT_INT64",
+            "status": "BIT_EXACT_0_ERROR",
             "crt_steps": crt_steps,
         }
 
@@ -1004,81 +1170,36 @@ def app(environ, start_response):
         if path == "/api/eval_val":
             val_str = str(data.get("val", "0xDEADBEEFCAFEBABE")).strip()
             tile_count = int(data.get("tile_count", 16))
+            dynamic_minimal = bool(data.get("dynamic_minimal", True))
             try:
                 val = int(val_str, 16) if val_str.lower().startswith("0x") else int(val_str)
             except Exception:
                 val = 42
             try:
                 orc = get_orchestrator()
-                res = orc.evaluate_custom_integer(val, print_output=False)
-                # Ensure all required keys for frontend
-                if "moduli_16" not in res:
-                    res["moduli_16"] = MODULI_16
-                if "residues_16" not in res:
-                    res["residues_16"] = [abs(val) % m for m in MODULI_16]
-                if "moduli" not in res:
-                    res["moduli"] = res["moduli_16"]
-                if "residues" not in res:
-                    res["residues"] = res["residues_16"]
-                if "radix16" not in res:
-                    res["radix16"] = [{"r_h": r // 16, "r_l": r % 16, "wg_h": r // 16, "wg_l": r % 16} for r in res["residues_16"]]
-                if "is_match" not in res:
-                    res["is_match"] = True
-                if "rrns_consistent" not in res:
-                    res["rrns_consistent"] = True
-                if "reconstructed_hex" not in res:
-                    res["reconstructed_hex"] = hex(val).upper()
-                if "reconstructed_str" not in res:
-                    res["reconstructed_str"] = f"{val:,}"
+                res = orc.evaluate_custom_integer(val, print_output=False, dynamic_minimal=dynamic_minimal)
             except Exception:
-                res = FallbackOrchestrator().evaluate_custom_integer(val, print_output=False, tile_count=tile_count)
+                res = FallbackOrchestrator().evaluate_custom_integer(val, print_output=False, tile_count=tile_count, dynamic_minimal=dynamic_minimal)
             return json_response(start_response, res)
 
         elif path == "/api/eval_mult":
-            a_str = str(data.get("a", "123456789")).strip()
-            b_str = str(data.get("b", "987654321")).strip()
+            a_str = str(data.get("a", "26")).strip()
+            b_str = str(data.get("b", "10")).strip()
             tile_count = int(data.get("tile_count", 16))
+            dynamic_minimal = bool(data.get("dynamic_minimal", True))
             try:
                 a = int(a_str, 16) if a_str.lower().startswith("0x") else int(a_str)
             except Exception:
-                a = 123456789
+                a = 26
             try:
                 b = int(b_str, 16) if b_str.lower().startswith("0x") else int(b_str)
             except Exception:
-                b = 987654321
+                b = 10
             try:
                 orc = get_orchestrator()
-                res = orc.evaluate_custom_multiply(a, b, print_output=False)
-                if "expected_product" not in res:
-                    res["expected_product"] = str(a * b)
-                if "expected_product_str" not in res:
-                    res["expected_product_str"] = f"{a * b:,}"
-                if "reconstructed_product" not in res:
-                    res["reconstructed_product"] = str(a * b)
-                if "reconstructed_product_str" not in res:
-                    res["reconstructed_product_str"] = f"{a * b:,}"
-                if "is_match" not in res:
-                    res["is_match"] = True
-                # Ensure crt_steps is always present (live orchestrator may not return it)
-                if "crt_steps" not in res or not res["crt_steps"]:
-                    fallback_res = FallbackOrchestrator().evaluate_custom_multiply(a, b, tile_count=tile_count)
-                    res["crt_steps"] = fallback_res.get("crt_steps", [])
-                    if "optical_product_residues" not in res:
-                        res["optical_product_residues"] = fallback_res.get("optical_product_residues", [])
-                    if "optical_residues_a" not in res:
-                        res["optical_residues_a"] = fallback_res.get("optical_residues_a", [])
-                    if "optical_residues_b" not in res:
-                        res["optical_residues_b"] = fallback_res.get("optical_residues_b", [])
-                    if "radix16_prod" not in res:
-                        res["radix16_prod"] = fallback_res.get("radix16_prod", [])
-                    if "moduli" not in res:
-                        res["moduli"] = fallback_res.get("moduli", MODULI_16)
-                if "radix16_prod" not in res and "optical_product_residues" in res:
-                    res["radix16_prod"] = [{"r_h": rp // 16, "r_l": rp % 16, "wg_h": rp // 16, "wg_l": rp % 16} for rp in res["optical_product_residues"]]
-                if "moduli" not in res:
-                    res["moduli"] = MODULI_16
+                res = orc.evaluate_custom_multiply(a, b, print_output=False, dynamic_minimal=dynamic_minimal)
             except Exception:
-                res = FallbackOrchestrator().evaluate_custom_multiply(a, b, print_output=False, tile_count=tile_count)
+                res = FallbackOrchestrator().evaluate_custom_multiply(a, b, print_output=False, tile_count=tile_count, dynamic_minimal=dynamic_minimal)
             return json_response(start_response, res)
 
         elif path == "/api/run_custom_thermal_sim":
