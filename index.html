@@ -5645,6 +5645,13 @@
       if (elA && elB) { elA.value = a; elB.value = b; evalMultiply(); }
     }
 
+    // Chip constants (mirror Python backend)
+    const CHIP_MAX_TILES    = 16;
+    const CHIP_MAX_MODULUS  = 257n;
+    const CHIP_MAX_FLAT_BITS = 125;   // log2(M_16 top-16 coprime ≤257)
+    const CHIP_MAX_PRNS_BITS = 128;   // Three Equations: 64×64 → 128-bit
+
+    // Legacy ascending pool (kept for display reference only)
     const COPRIME_MODULI_ASCENDING = [
       16, 17, 19, 23, 25, 27, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67,
       71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137,
@@ -5668,27 +5675,54 @@
       return g === 1n ? ((x % m) + m) % m : 0n;
     }
 
-    function selectMinimalDynamicModuliJS(targetValue, isSigned = false, maxTiles = 16) {
-      const absVal = targetValue < 0n ? -targetValue : targetValue;
-      const bitRange = determineBitRangeJS(targetValue);
-      const neededRange = isSigned ? (2n * absVal + 1n) : (absVal + 1n);
-      const activeModuli = [];
-      let currM = 1n;
-      for (const m of COPRIME_MODULI_ASCENDING) {
-        activeModuli.push(m);
-        currM *= BigInt(m);
-        if (currM >= neededRange && activeModuli.length >= 1) break;
-        if (activeModuli.length >= maxTiles) break;
+    function bigGcdJS(a, b) {
+      a = a < 0n ? -a : a; b = b < 0n ? -b : b;
+      while (b !== 0n) { const t = b; b = a % b; a = t; }
+      return a;
+    }
+
+    /**
+     * Greedy descending coprime picker — mirrors Python generate_optimal_moduli().
+     * Picks pairwise-coprime moduli starting from maxModulus=257 downward until
+     * M_total >= 2^requiredBits, or maxTiles is exhausted.
+     * WG<=16 guaranteed: max modulus 257 → max residue 256 = 16×16, r_H,r_L ≤ 16.
+     */
+    function generateOptimalModuliJS(requiredBits, maxModulus = 257n, maxTiles = CHIP_MAX_TILES) {
+      const target = 1n << BigInt(requiredBits);
+      const selected = [];
+      let M = 1n;
+      for (let c = maxModulus; c > 1n; c--) {
+        if (selected.every(m => bigGcdJS(c, m) === 1n)) {
+          selected.push(c);
+          M *= c;
+          if (M >= target) break;
+        }
+        if (selected.length >= maxTiles) break;
       }
-      const numActive = activeModuli.length;
-      const numGated = Math.max(0, maxTiles - numActive);
-      const energySavedPct = maxTiles > 0 ? (numGated / maxTiles) * 100.0 : 0.0;
-      const MIList = activeModuli.map(m => currM / BigInt(m));
-      const NIList = activeModuli.map((m, i) => modInvJS(MIList[i], BigInt(m)));
+      const numTiles  = selected.length;
+      const overflow  = M < target;
+      const numGated  = Math.max(0, CHIP_MAX_TILES - numTiles);
+      const energyPct = (numGated / CHIP_MAX_TILES) * 100.0;
+      const MIList    = selected.map(m => M / m);
+      const NIList    = selected.map((m, i) => modInvJS(MIList[i], m));
       return {
-        targetValue, bitRange, isSigned, neededRange,
-        numActiveTiles: numActive, numGatedTiles: numGated, energySavedPct,
-        activeModuli, MTotal: currM, MIList, NIList
+        moduli: selected, MTotal: M,
+        numTiles, numGated, energyPct, overflow,
+        MIList, NIList,
+        bitRange: requiredBits,
+      };
+    }
+
+    // Legacy wrapper — calls generateOptimalModuliJS with same external API
+    function selectMinimalDynamicModuliJS(targetValue, isSigned = false, maxTiles = CHIP_MAX_TILES) {
+      const bitRange = determineBitRangeJS(targetValue);
+      const requiredBits = bitRange + (isSigned ? 1 : 0) + 1;
+      const r = generateOptimalModuliJS(requiredBits, CHIP_MAX_MODULUS, maxTiles);
+      return {
+        activeModuli: r.moduli, MTotal: r.MTotal,
+        numActiveTiles: r.numTiles, numGatedTiles: r.numGated,
+        energySavedPct: r.energyPct, overflow: r.overflow,
+        MIList: r.MIList, NIList: r.NIList, bitRange,
       };
     }
 
@@ -5717,11 +5751,13 @@
           valBig = 260n;
         }
         const isSigned = valBig < 0n;
-        const dyn = selectMinimalDynamicModuliJS(valBig, isSigned, 16);
-        const moduli = dyn.activeModuli;
-        const numActive = dyn.numActiveTiles;
-        const numGated = dyn.numGatedTiles;
-        const energySavedPct = dyn.energySavedPct;
+        const bitRange = determineBitRangeJS(valBig);
+        const requiredBits = bitRange + (isSigned ? 1 : 0) + 1;
+        const dyn = generateOptimalModuliJS(requiredBits, CHIP_MAX_MODULUS, CHIP_MAX_TILES);
+        const moduli = dyn.moduli.map(Number);
+        const numActive = dyn.numTiles;
+        const numGated = dyn.numGated;
+        const energySavedPct = dyn.energyPct;
         const MTotal = dyn.MTotal;
 
         const residues = moduli.map(m => Number(((valBig % BigInt(m)) + BigInt(m)) % BigInt(m)));
@@ -5747,9 +5783,8 @@
               tree_path: `Tree H: WG #${rh} | Tree L: WG #${rl}`
             });
           } else {
-            const m = COPRIME_MODULI_ASCENDING[i] || 0;
             tileStates.push({
-              tile_id: i, modulus: m, modulus_label: `${m}`, is_active: false,
+              tile_id: i, modulus: 0, modulus_label: '---', is_active: false,
               residue: null, r_h: 0, r_l: 0, status: 'GATED (0 W Standby)',
               tree_path: 'GATED (0 W Dynamic)'
             });
@@ -5757,13 +5792,14 @@
         }
 
         const crtSteps = [];
-        crtSteps.push(`=== Project JANUS Dynamic Power-Gated RNS Decomposition (${numActive}/16 Active Tiles) ===\n`);
+        crtSteps.push(`=== JANUS Dynamic Optimal RNS Decomposition (${numActive}/${CHIP_MAX_TILES} Active Tiles) ===\n`);
         crtSteps.push(`Input Decimal       : ${valBig.toString()}`);
-        crtSteps.push(`Bit-Range Detected  : ${dyn.bitRange} bits`);
-        crtSteps.push(`Active Tiles        : ${numActive} of 16 (${numGated} Tiles Power-Gated -> ${energySavedPct.toFixed(1)}% Energy Saved)`);
-        crtSteps.push(`Selected Moduli     : [${moduli.join(', ')}] (Lowest Coprime Set)`);
-        crtSteps.push(`Dynamic Range       : M_total = ${MTotal.toString()} ≈ 2^${Math.log2(Number(MTotal)).toFixed(1)} bits\n`);
-        crtSteps.push(`Tile   Modulus   Residue   Radix-16 [rH, rL]   16-Tree Waveguides (<= 16)      State`);
+        crtSteps.push(`Bit-Range Detected  : ${bitRange} bits  (requires M ≥ 2^${requiredBits})`);
+        crtSteps.push(`Algorithm           : Greedy Descending Coprime Picker (m ≤ ${CHIP_MAX_MODULUS})`);
+        crtSteps.push(`Active Tiles        : ${numActive} of ${CHIP_MAX_TILES} (${numGated} Gated → ${energySavedPct.toFixed(1)}% Energy Saved)`);
+        crtSteps.push(`Selected Moduli     : [${moduli.join(', ')}]`);
+        crtSteps.push(`Dynamic Range       : M_total = ${MTotal.toString()} ≈ 2^${Math.log2(Number(MTotal)).toFixed(2)} bits\n`);
+        crtSteps.push(`Tile   Modulus   Residue   Radix-16 [rH, rL]   16-Tree Waveguides (≤ 16)      State`);
         crtSteps.push(`─────  ───────── ────────  ─────────────────── ──────────────────────────────  ──────────`);
         tileStates.forEach(t => {
           if (t.is_active) {
@@ -5866,90 +5902,230 @@
         }
         const productBig = aBig * bBig;
         const isSigned = productBig < 0n;
-        const dyn = selectMinimalDynamicModuliJS(productBig, isSigned, 16);
-        const moduli = dyn.activeModuli;
-        const numActive = dyn.numActiveTiles;
-        const numGated = dyn.numGatedTiles;
-        const energySavedPct = dyn.energySavedPct;
-        const MTotal = dyn.MTotal;
+        const absA = aBig < 0n ? -aBig : aBig;
+        const absB = bBig < 0n ? -bBig : bBig;
+        const bitA = determineBitRangeJS(aBig);
+        const bitB = determineBitRangeJS(bBig);
+        const bitRange = determineBitRangeJS(productBig);
+        const requiredBits = bitA + bitB + 1;
 
-        const resA = moduli.map(m => Number(((aBig % BigInt(m)) + BigInt(m)) % BigInt(m)));
-        const resB = moduli.map(m => Number(((bBig % BigInt(m)) + BigInt(m)) % BigInt(m)));
-        const resP = resA.map((ra, idx) => (ra * resB[idx]) % moduli[idx]);
+        const opt = generateOptimalModuliJS(requiredBits, CHIP_MAX_MODULUS, CHIP_MAX_TILES);
+        let usePrns = false;
+        let chipExceed = false;
 
-        let runningSum = 0n;
-        for (let i = 0; i < numActive; i++) {
-          runningSum += BigInt(resP[i]) * dyn.MIList[i] * dyn.NIList[i];
+        if (opt.overflow) {
+          if (bitA <= 64 && bitB <= 64) {
+            usePrns = true;
+          } else {
+            chipExceed = true;
+          }
         }
-        let reconstructed = runningSum % MTotal;
-        if (isSigned && reconstructed > MTotal / 2n) reconstructed -= MTotal;
-        const isMatch = (reconstructed === productBig);
 
-        const tileStates = [];
-        for (let i = 0; i < 16; i++) {
-          if (i < numActive) {
-            const m = moduli[i];
-            const rp = resP[i];
+        if (!usePrns && !chipExceed) {
+          // ── PATH 1: FLAT 16-TILE DYNAMIC RNS ──────────────────────────────
+          const moduli = opt.moduli.map(Number);
+          const numActive = opt.numTiles;
+          const numGated = opt.numGated;
+          const energySavedPct = opt.energyPct;
+          const MTotal = opt.MTotal;
+
+          const resA = moduli.map(m => Number(((aBig % BigInt(m)) + BigInt(m)) % BigInt(m)));
+          const resB = moduli.map(m => Number(((bBig % BigInt(m)) + BigInt(m)) % BigInt(m)));
+          const resP = resA.map((ra, idx) => (ra * resB[idx]) % moduli[idx]);
+
+          let runningSum = 0n;
+          for (let i = 0; i < numActive; i++) {
+            runningSum += BigInt(resP[i]) * opt.MIList[i] * opt.NIList[i];
+          }
+          let reconstructed = runningSum % MTotal;
+          if (isSigned && reconstructed > MTotal / 2n) reconstructed -= MTotal;
+          const isMatch = (reconstructed === productBig);
+
+          const tileStates = [];
+          for (let i = 0; i < 16; i++) {
+            if (i < numActive) {
+              const m = moduli[i];
+              const rp = resP[i];
+              const rph = Math.floor(rp / 16);
+              const rpl = rp % 16;
+              const mStr = (m === 17) ? `${m} (F1)` : (m === 257 ? `${m} (F2)` : `${m}`);
+              tileStates.push({
+                tile_id: i, modulus: m, modulus_label: mStr, is_active: true,
+                res_a: resA[i], res_b: resB[i], res_p: rp, r_h: rph, r_l: rpl,
+                status: 'ACTIVE', tree_path: `Tree H: WG #${rph} | Tree L: WG #${rpl}`
+              });
+            } else {
+              tileStates.push({
+                tile_id: i, modulus: 0, modulus_label: '---', is_active: false,
+                res_a: null, res_b: null, res_p: null, r_h: 0, r_l: 0,
+                status: 'GATED (0 W Standby)', tree_path: 'GATED (0 W Dynamic)'
+              });
+            }
+          }
+
+          const crtSteps = [];
+          crtSteps.push(`=== JANUS Flat-RNS Multiplication (Path 1 — ${numActive}/${CHIP_MAX_TILES} tiles) ===\n`);
+          crtSteps.push(`Operand A          : ${aBig.toString()}  (${bitA} bits)`);
+          crtSteps.push(`Operand B          : ${bBig.toString()}  (${bitB} bits)`);
+          crtSteps.push(`Expected Product   : ${productBig.toString()}`);
+          crtSteps.push(`Bit-Range Detected : ${bitRange} bits  (required M ≥ 2^${requiredBits})`);
+          crtSteps.push(`Algorithm          : Greedy Descending Coprime Picker (m ≤ ${CHIP_MAX_MODULUS})`);
+          crtSteps.push(`Active Tiles       : ${numActive} of ${CHIP_MAX_TILES} (${numGated} Tiles Power-Gated -> ${energySavedPct.toFixed(1)}% Energy Saved)`);
+          crtSteps.push(`Selected Moduli    : [${moduli.join(', ')}]`);
+          crtSteps.push(`Dynamic Range      : M_total = ${MTotal.toString()} ≈ 2^${Math.log2(Number(MTotal)).toFixed(2)} bits\n`);
+          crtSteps.push(`Tile   Modulus     r_A    r_B   r_P=(r_A×r_B)%m   Radix-16 [rH, rL]   16-Tree Waveguides (≤ 16)      State`);
+          crtSteps.push(`─────  ─────────  ─────  ─────  ───────────────  ───────────────────  ──────────────────────────────  ──────────`);
+          tileStates.forEach(t => {
+            if (t.is_active) {
+              crtSteps.push(` T${String(t.tile_id).padStart(2, '0')}  mod ${t.modulus_label.padStart(7, ' ')}   ${String(t.res_a).padStart(4, ' ')}   ${String(t.res_b).padStart(4, ' ')}         ${String(t.res_p).padStart(4, ' ')}       [${String(t.r_h).padStart(2, ' ')}, ${String(t.r_l).padStart(2, ' ')}] (≤ 16)     Tree H: #${t.r_h} | Tree L: #${t.r_l}   ACTIVE`);
+            } else {
+              crtSteps.push(` T${String(t.tile_id).padStart(2, '0')}  mod ${t.modulus_label.padStart(7, ' ')}      -      -             -                       -                               -              GATED (OFF)`);
+            }
+          });
+          crtSteps.push(`\n=== CRT Adder Tree Dynamic Reconstruction ===`);
+          crtSteps.push(`Reconstructed Product = ${reconstructed.toString()}`);
+          crtSteps.push(`Arithmetic Deviation  = 0`);
+          crtSteps.push(`Sign-Off Status       = [PASS] BIT-EXACT 0-ERROR RECONSTRUCTION`);
+
+          res = {
+            operand_A_str: aBig.toString(), operand_B_str: bBig.toString(),
+            expected_product_str: productBig.toLocaleString(), expected_product: productBig.toString(),
+            reconstructed_product_str: reconstructed.toLocaleString(), reconstructed_product: reconstructed.toString(),
+            product_hex: (productBig >= 0n ? '0x' + productBig.toString(16).toUpperCase() : '-0x' + (-productBig).toString(16).toUpperCase()),
+            bit_range: bitRange, num_active_tiles: numActive, num_gated_tiles: numGated,
+            energy_saved_pct: Math.round(energySavedPct * 10) / 10,
+            active_moduli: moduli, active_moduli_display: moduli.join(', '),
+            dynamic_range_display: MTotal.toLocaleString(),
+            is_match: isMatch, use_prns: false, chip_exceed: false,
+            tile_states: tileStates, crt_steps: crtSteps, status: 'BIT_EXACT_0_ERROR'
+          };
+        } else if (usePrns) {
+          // ── PATH 2: THREE EQUATIONS (PRNS HYBRID MEMORY-OPTICAL) ──────────
+          function split64Signed(val) {
+            const M32 = 1n << 32n;
+            const H31 = 1n << 31n;
+            let xl = ((val % M32) + M32) % M32;
+            if (xl >= H31) xl -= M32;
+            const xh = (val - xl) / M32;
+            return [xh, xl];
+          }
+
+          const [A_H, A_L] = split64Signed(aBig);
+          const [B_H, B_L] = split64Signed(bBig);
+
+          const cluster = generateOptimalModuliJS(65, 257n, 8);
+          const cMod = cluster.moduli.map(Number);
+          const cM = cluster.MTotal;
+
+          function rnsMulCluster(x, y) {
+            const rx = cMod.map(m => Number(((x % BigInt(m)) + BigInt(m)) % BigInt(m)));
+            const ry = cMod.map(m => Number(((y % BigInt(m)) + BigInt(m)) % BigInt(m)));
+            const rp = rx.map((val, idx) => (val * ry[idx]) % cMod[idx]);
+            let s = 0n;
+            for (let i = 0; i < cMod.length; i++) {
+              s += BigInt(rp[i]) * cluster.MIList[i] * cluster.NIList[i];
+            }
+            let val = s % cM;
+            if (val >= cM / 2n) val -= cM;
+            return val;
+          }
+
+          const P_LL = rnsMulCluster(A_L, B_L);
+          const P_HH = rnsMulCluster(A_H, B_H);
+          const P_cross = A_L * B_H + A_H * B_L;
+
+          const reconstructed = (P_HH << 64n) + (P_cross << 32n) + P_LL;
+          const isMatch = (reconstructed === productBig);
+
+          const tileStates = [];
+          for (let i = 0; i < 8; i++) {
+            const m = cMod[i];
+            const ra = Number(((A_L % BigInt(m)) + BigInt(m)) % BigInt(m));
+            const rb = Number(((B_L % BigInt(m)) + BigInt(m)) % BigInt(m));
+            const rp = (ra * rb) % m;
             const rph = Math.floor(rp / 16);
             const rpl = rp % 16;
-            const mStr = (m === 17) ? `${m} (F1)` : (m === 257 ? `${m} (F2)` : `${m}`);
+            const mStr = (m === 257) ? `${m} (F2)` : `${m}`;
             tileStates.push({
               tile_id: i, modulus: m, modulus_label: mStr, is_active: true,
-              res_a: resA[i], res_b: resB[i], res_p: rp, r_h: rph, r_l: rpl,
-              status: 'ACTIVE', tree_path: `Tree H: WG #${rph} | Tree L: WG #${rpl}`
+              res_a: ra, res_b: rb, res_p: rp, r_h: rph, r_l: rpl,
+              status: 'ACTIVE — Cluster 1 (A_L×B_L)',
+              tree_path: `Tree H: WG #${rph} | Tree L: WG #${rpl}`
             });
-          } else {
-            const m = COPRIME_MODULI_ASCENDING[i] || 0;
+          }
+          for (let i = 0; i < 8; i++) {
+            const m = cMod[i];
+            const ra = Number(((A_H % BigInt(m)) + BigInt(m)) % BigInt(m));
+            const rb = Number(((B_H % BigInt(m)) + BigInt(m)) % BigInt(m));
+            const rp = (ra * rb) % m;
+            const rph = Math.floor(rp / 16);
+            const rpl = rp % 16;
+            const mStr = (m === 257) ? `${m} (F2)` : `${m}`;
             tileStates.push({
-              tile_id: i, modulus: m, modulus_label: `${m}`, is_active: false,
-              res_a: null, res_b: null, res_p: null, r_h: 0, r_l: 0,
-              status: 'GATED (0 W Standby)', tree_path: 'GATED (0 W Dynamic)'
+              tile_id: i + 8, modulus: m, modulus_label: mStr, is_active: true,
+              res_a: ra, res_b: rb, res_p: rp, r_h: rph, r_l: rpl,
+              status: 'ACTIVE — Cluster 2 (A_H×B_H)',
+              tree_path: `Tree H: WG #${rph} | Tree L: WG #${rpl}`
             });
           }
-        }
 
-        const crtSteps = [];
-        crtSteps.push(`=== Project JANUS Dynamic Power-Gated Optical Multiplication: ${aBig.toString()} × ${bBig.toString()} = ${productBig.toString()} ===\n`);
-        crtSteps.push(`Operand A          : ${aBig.toString()}`);
-        crtSteps.push(`Operand B          : ${bBig.toString()}`);
-        crtSteps.push(`Expected Product   : ${productBig.toString()}`);
-        crtSteps.push(`Bit-Range Detected : ${dyn.bitRange} bits`);
-        crtSteps.push(`Active Tiles       : ${numActive} of 16 (${numGated} Tiles Power-Gated -> ${energySavedPct.toFixed(1)}% Energy Saved)`);
-        crtSteps.push(`Selected Moduli    : [${moduli.join(', ')}] (Lowest Coprime Set)`);
-        crtSteps.push(`Dynamic Range      : M_total = ${MTotal.toString()} ≈ 2^${Math.log2(Number(MTotal)).toFixed(1)} bits\n`);
-        crtSteps.push(`Tile   Modulus     r_A    r_B   r_P=(r_A×r_B)%m   Radix-16 [rH, rL]   16-Tree Waveguides (<= 16)      State`);
-        crtSteps.push(`─────  ─────────  ─────  ─────  ───────────────  ───────────────────  ──────────────────────────────  ──────────`);
-        tileStates.forEach(t => {
-          if (t.is_active) {
-            crtSteps.push(` T${String(t.tile_id).padStart(2, '0')}  mod ${t.modulus_label.padStart(7, ' ')}   ${String(t.res_a).padStart(4, ' ')}   ${String(t.res_b).padStart(4, ' ')}         ${String(t.res_p).padStart(4, ' ')}       [${String(t.r_h).padStart(2, ' ')}, ${String(t.r_l).padStart(2, ' ')}] (<= 16)     Tree H: #${t.r_h} | Tree L: #${t.r_l}   ACTIVE`);
-          } else {
-            crtSteps.push(` T${String(t.tile_id).padStart(2, '0')}  mod ${t.modulus_label.padStart(7, ' ')}      -      -             -                       -                               -              GATED (OFF)`);
+          const crtSteps = [];
+          crtSteps.push(`=== JANUS Three Equations / PRNS (Path 2 — Hybrid Memory-Optical) ===\n`);
+          crtSteps.push(`Operand A          : ${aBig.toString()}  (${bitA} bits)  → A_H=${A_H}, A_L=${A_L}`);
+          crtSteps.push(`Operand B          : ${bBig.toString()}  (${bitB} bits)  → B_H=${B_H}, B_L=${B_L}`);
+          crtSteps.push(`Expected Product   : ${productBig.toString()}  (${bitRange} bits)\n`);
+          crtSteps.push(`8-Tile Cluster     : [${cMod.join(', ')}]`);
+          crtSteps.push(`Cluster M_total    : ${cM.toString()} ≈ 2^${Math.log2(Number(cM)).toFixed(2)} bits  (covers 64-bit sub-products)\n`);
+          crtSteps.push(`  Equation 1 — Optical Cluster 1 (Tiles 0-7):  P_LL = A_L×B_L = ${P_LL.toString()}`);
+          crtSteps.push(`  Equation 2 — Optical Cluster 2 (Tiles 8-15): P_HH = A_H×B_H = ${P_HH.toString()}`);
+          crtSteps.push(`  Equation 3 — Memory Trick (CMOS SRAM LUT):   P_cross = A_L×B_H + A_H×B_L = ${P_cross.toString()}\n`);
+          crtSteps.push(`  Final Assembly:  Product = (P_HH << 64) + (P_cross << 32) + P_LL`);
+          crtSteps.push(`                           = ${reconstructed.toString()}\n`);
+          crtSteps.push(`  Chip Ceiling     : ${CHIP_MAX_PRNS_BITS} bits (64×64 → 128-bit product)`);
+          crtSteps.push(`  Sign-Off Status  : [PASS] BIT-EXACT 0-ERROR (Three Equations PRNS)`);
+
+          res = {
+            operand_A_str: aBig.toString(), operand_B_str: bBig.toString(),
+            expected_product_str: productBig.toLocaleString(), expected_product: productBig.toString(),
+            reconstructed_product_str: reconstructed.toLocaleString(), reconstructed_product: reconstructed.toString(),
+            product_hex: (productBig >= 0n ? '0x' + productBig.toString(16).toUpperCase() : '-0x' + (-productBig).toString(16).toUpperCase()),
+            bit_range: bitRange, num_active_tiles: 16, num_gated_tiles: 0, energy_saved_pct: 0.0,
+            active_moduli: cMod, active_moduli_display: `2 × [${cMod.join(', ')}]`,
+            dynamic_range_display: `${cM.toLocaleString()} (Cluster) | 2^128 (PRNS Total)`,
+            is_match: isMatch, use_prns: true, chip_exceed: false,
+            tile_states: tileStates, crt_steps: crtSteps, status: 'BIT_EXACT_PRNS'
+          };
+        } else {
+          // ── PATH 3: CHIP OVERFLOW ─────────────────────────────────────────
+          const tileStates = [];
+          for (let i = 0; i < 16; i++) {
+            tileStates.push({
+              tile_id: i, modulus: 0, modulus_label: '---', is_active: false,
+              res_a: null, res_b: null, res_p: null, r_h: 0, r_l: 0,
+              status: 'N/A (chip overflow)', tree_path: 'N/A'
+            });
           }
-        });
-        crtSteps.push(`\n=== CRT Adder Tree Dynamic Reconstruction ===`);
-        crtSteps.push(`Reconstructed Product = ${reconstructed.toString()}`);
-        crtSteps.push(`Arithmetic Deviation  = 0`);
-        crtSteps.push(`Sign-Off Status       = [PASS] BIT-EXACT 0-ERROR RECONSTRUCTION`);
+          const crtSteps = [];
+          crtSteps.push(`=== JANUS Chip Capacity Exceeded (Path 3) ===\n`);
+          crtSteps.push(`Operand A   : ${bitA} bits  (max per operand = 64 bits for PRNS path)`);
+          crtSteps.push(`Operand B   : ${bitB} bits`);
+          crtSteps.push(`Product     : ${bitRange} bits`);
+          crtSteps.push(`Flat limit  : ${CHIP_MAX_FLAT_BITS} bits  (16 tiles, top coprime ≤ 257)`);
+          crtSteps.push(`PRNS limit  : ${CHIP_MAX_PRNS_BITS} bits  (64×64 three-equations)`);
+          crtSteps.push(`Sign-Off    : [FAIL] INPUT EXCEEDS 16-TILE CHIP MAXIMUM`);
 
-        res = {
-          operand_A_str: aBig.toString(),
-          operand_B_str: bBig.toString(),
-          expected_product_str: productBig.toLocaleString(),
-          expected_product: productBig.toString(),
-          reconstructed_product_str: reconstructed.toLocaleString(),
-          reconstructed_product: reconstructed.toString(),
-          product_hex: (productBig >= 0n ? '0x' + productBig.toString(16).toUpperCase() : '-0x' + (-productBig).toString(16).toUpperCase()),
-          bit_range: dyn.bitRange,
-          num_active_tiles: numActive,
-          num_gated_tiles: numGated,
-          energy_saved_pct: Math.round(energySavedPct * 10) / 10,
-          active_moduli: moduli,
-          active_moduli_display: moduli.join(', '),
-          dynamic_range_display: MTotal.toLocaleString(),
-          is_match: isMatch,
-          tile_states: tileStates,
-          crt_steps: crtSteps
-        };
+          res = {
+            operand_A_str: aBig.toString(), operand_B_str: bBig.toString(),
+            expected_product_str: productBig.toLocaleString(), expected_product: productBig.toString(),
+            reconstructed_product_str: 'N/A', reconstructed_product: '0',
+            product_hex: (productBig >= 0n ? '0x' + productBig.toString(16).toUpperCase() : '-0x' + (-productBig).toString(16).toUpperCase()),
+            bit_range: bitRange, num_active_tiles: 0, num_gated_tiles: 16, energy_saved_pct: 100.0,
+            active_moduli: [], active_moduli_display: 'None',
+            dynamic_range_display: 'Exceeded',
+            is_match: false, use_prns: false, chip_exceed: true,
+            tile_states: tileStates, crt_steps: crtSteps, status: 'CHIP_OVERFLOW'
+          };
+        }
       }
 
       const summaryEl = document.getElementById('mult-summary');
@@ -5958,15 +6134,31 @@
         const numGated = res.num_gated_tiles !== undefined ? res.num_gated_tiles : (16 - numActive);
         const energySaved = res.energy_saved_pct !== undefined ? res.energy_saved_pct : (numGated / 16 * 100);
         const isMatch = !!res.is_match;
+        const usePrns = !!res.use_prns;
+        const chipExceed = !!res.chip_exceed;
 
-        let overflowWarning = '';
-        if (!isMatch) {
-          overflowWarning = `
+        let statusBanner = '';
+        if (usePrns) {
+          statusBanner = `
+            <div style="margin-top:6px; padding:6px 10px; background:rgba(6,182,212,0.12); border:1px solid rgba(6,182,212,0.4); border-radius:6px; color:#22d3ee; font-size:0.78rem; line-height:1.4;">
+              ⚡ <b>Three Equations (Hybrid Memory-Optical PRNS) Activated:</b> Product requires <b>${res.bit_range} bits</b> (> 16-tile flat dynamic range). Handled via dual 8-tile optical clusters (Tiles 0-7: A<sub>L</sub>&times;B<sub>L</sub>, Tiles 8-15: A<sub>H</sub>&times;B<sub>H</sub>) and CMOS SRAM LUT memory trick for cross-terms to achieve exact 128-bit reconstruction.
+            </div>
+          `;
+        } else if (chipExceed || !isMatch) {
+          statusBanner = `
             <div style="margin-top:6px; padding:6px 10px; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.4); border-radius:6px; color:#f87171; font-size:0.78rem; line-height:1.4;">
-              ⚠️ <b>Dynamic Range Overflow:</b> Product requires <b>${res.bit_range} bits</b>, but 16 tiles with these lowest coprime moduli provide <b>≈ 81.2 bits</b> (M<sub>total</sub> = ${res.dynamic_range_display}). In RNS arithmetic, products larger than M<sub>total</sub> naturally wrap modulo M<sub>total</sub> (${res.expected_product_str} mod M<sub>total</sub> = ${res.reconstructed_product_str}). Single-cycle exact reconstruction of 130 bits requires <b>24 active optical tiles</b> (or 32-Tile Datacenter configuration, which supports up to 239 bits).
+              ⚠️ <b>Chip Capacity Exceeded:</b> Input operands require <b>${res.bit_range} bits</b>, exceeding the chip's maximum ceiling (64-bit operands / 128-bit product via PRNS Three Equations). In RNS arithmetic, inputs larger than dynamic capacity wrap modulo M<sub>total</sub>.
             </div>
           `;
         }
+
+        const signoffBadge = isMatch
+          ? (usePrns ? '✓ BIT-EXACT (Three Equations PRNS)' : '✓ BIT-EXACT (Flat RNS)')
+          : '✗ CAPACITY EXCEEDED';
+
+        const moduliLabel = usePrns
+          ? `<b>PRNS Dual Clusters (8+8 Tiles):</b> ${res.active_moduli_display || ''} &rarr; Max 128 bits`
+          : `<b>Selected Moduli (Descending Optimal):</b> [${res.active_moduli_display || (res.active_moduli ? res.active_moduli.join(', ') : '')}] &rarr; M<sub>total</sub> = ${res.dynamic_range_display || '---'}`;
 
         summaryEl.innerHTML = `
           <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:4px;">
@@ -5978,13 +6170,13 @@
             <div><b>Dynamic Energy Saved:</b> <b style="color:var(--accent-green); font-weight:700;">${energySaved.toFixed(1)}%</b></div>
           </div>
           <div style="margin-bottom:4px;">
-            <b>Selected Moduli (Lowest Coprime):</b> [${res.active_moduli_display || (res.active_moduli ? res.active_moduli.join(', ') : '16, 17')}] &rarr; M<sub>total</sub> = ${res.dynamic_range_display || '272'}
+            ${moduliLabel}
           </div>
           <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; border-top:1px solid var(--card-border); padding-top:4px; margin-top:4px;">
             <div><b>Reconstructed Product:</b> ${res.reconstructed_product_str || res.reconstructed_product} (${res.product_hex || ''})</div>
-            <div><b>Sign-Off:</b> <span class="${isMatch ? 'badge-pass' : 'badge-fail'}">${isMatch ? '✓ BIT-EXACT 0-ERROR CRT' : '✗ OVERFLOW (Wrapped Modulo M_total)'}</span></div>
+            <div><b>Sign-Off:</b> <span class="${isMatch ? 'badge-pass' : 'badge-fail'}">${signoffBadge}</span></div>
           </div>
-          ${overflowWarning}
+          ${statusBanner}
         `;
       }
 

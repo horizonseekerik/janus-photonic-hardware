@@ -20,6 +20,7 @@ import time
 import json
 import shutil
 import subprocess
+import math
 from dataclasses import dataclass, asdict
 from typing import Dict, Any, List, Optional
 import numpy as np
@@ -56,8 +57,13 @@ from tier5_python_rns.moduli_generator import (
     to_rns,
     crt_reconstruct,
     select_minimal_dynamic_moduli,
+    generate_optimal_moduli,
     determine_bit_range,
     COPRIME_MODULI_ASCENDING,
+    CHIP_MAX_TILES,
+    CHIP_MAX_MODULUS,
+    CHIP_MAX_FLAT_BITS,
+    CHIP_MAX_PRNS_BITS,
 )
 from tier5_python_rns.formal_verifier import run_formal_verification
 from tier5_python_rns.spatial_one_hot_router import SpatialOneHotAccelerator
@@ -731,11 +737,10 @@ class JanusMasterOrchestrator:
                     "tree_path": f"Tree H: WG #{rh:2d} | Tree L: WG #{rl:2d}",
                 })
             else:
-                m = COPRIME_MODULI_ASCENDING[i] if i < len(COPRIME_MODULI_ASCENDING) else 0
                 tile_states.append({
                     "tile_id": i,
-                    "modulus": m,
-                    "modulus_label": f"{m:3d}",
+                    "modulus": 0,
+                    "modulus_label": "---",
                     "is_active": False,
                     "residue": None,
                     "r_h": 0,
@@ -751,7 +756,7 @@ class JanusMasterOrchestrator:
         crt_steps.append(f"Input Hex           : {f'0x{X:016X}' if X >= 0 else f'-0x{abs(X):016X}'}")
         crt_steps.append(f"Bit-Range Detected  : {bit_range} bits")
         crt_steps.append(f"Active Tiles        : {num_active} of 16 ({num_gated} Tiles Power-Gated -> {energy_saved_pct:.1f}% Energy Saved)")
-        crt_steps.append(f"Selected Moduli     : {moduli} (Lowest Coprime Set)")
+        crt_steps.append(f"Selected Moduli     : {moduli} (Greedy Descending Coprime Set)")
         crt_steps.append(f"Dynamic Range       : M_total = prod(m_i) = {M_total:,} ≈ 2^{M_total.bit_length()} bits")
         crt_steps.append("")
         crt_steps.append(f"{'Tile':>5}  {'Modulus':>9}  {'Residue':>8}  {'Radix-16 [rH, rL]':>19}  {'16-Tree Physical Waveguides':>28}  {'State':>10}")
@@ -802,7 +807,7 @@ class JanusMasterOrchestrator:
             print("=" * 80)
             print(f"  Dynamic Bit-Range Detected : {bit_range} bits")
             print(f"  Active Optical Tiles       : {num_active} / 16 ({num_gated} Gated -> {energy_saved_pct:.1f}% Power Saved)")
-            print(f"  Selected Minimal Moduli    : {moduli} (Lowest Coprime Set)")
+            print(f"  Selected Minimal Moduli    : {moduli} (Greedy Descending Coprime Set)")
             print(f"  Effective Dynamic Range    : M_total = {M_total:,} ({M_total.bit_length()} bits)")
             print(f"\n  [1] Dynamic Spatial Residue Domain Execution ({num_active} Active Tiles, {num_gated} Gated):")
             print("  -----------------------------------------------------------------------------------------------------------------")
@@ -827,114 +832,211 @@ class JanusMasterOrchestrator:
         self, A: int, B: int, print_output: bool = True, dynamic_minimal: bool = True
     ) -> Dict[str, Any]:
         """
-        Multiplies two custom integers A and B, determines the bit range of the product,
-        and dynamically activates the minimal number of tiles required using the
-        lowest coprime moduli possible (e.g. 16, 17 for 26*10 rather than 257, 256),
-        power-gating unneeded tiles for proportional energy efficiency.
+        Multiplies two custom integers A and B using the dynamic optimal moduli algorithm:
+          Path 1: Flat 16-tile dynamic RNS with greedy descending coprime moduli (≤ 257)
+          Path 2: Three Equations / PRNS (Hybrid Memory-Optical) for products needing >16 tiles (up to 64x64 bits)
+          Path 3: Chip overflow diagnosis if inputs exceed chip capability (64-bit operands / 128-bit product)
         """
         expected_product = A * B
         bit_range = determine_bit_range(expected_product)
+        bit_a = determine_bit_range(A)
+        bit_b = determine_bit_range(B)
         is_signed = (expected_product < 0) or (A < 0) or (B < 0)
+        required_bits = bit_a + bit_b + 1
 
-        if dynamic_minimal:
-            dyn_info = select_minimal_dynamic_moduli(expected_product, is_signed=is_signed, max_tiles=16)
-            moduli = dyn_info["active_moduli"]
-            num_active = dyn_info["num_active_tiles"]
-            num_gated = dyn_info["num_gated_tiles"]
-            energy_saved_pct = dyn_info["energy_saved_pct"]
-            M_i = dyn_info["M_i"]
-            N_i = dyn_info["N_i"]
-            M_total = dyn_info["M_total"]
-        else:
-            mod_info = generate_moduli_set()
-            moduli = mod_info["moduli_compute"]
-            num_active = len(moduli)
-            num_gated = 0
-            energy_saved_pct = 0.0
-            M_i = mod_info["M_i"]
-            N_i = mod_info["N_i"]
-            M_total = mod_info["M_total"]
+        use_prns = False
+        chip_exceed = False
 
-        # Decompose & Multiply across active tiles
-        res_A = [A % m for m in moduli]
-        res_B = [B % m for m in moduli]
-        res_P = [((ra * rb) % m) for ra, rb, m in zip(res_A, res_B, moduli)]
+        opt = generate_optimal_moduli(required_bits, max_tiles=CHIP_MAX_TILES)
+        if opt["overflow"]:
+            if bit_a <= 64 and bit_b <= 64:
+                use_prns = True
+            else:
+                chip_exceed = True
 
-        # CRT Reconstruction
-        reconstructed_product = crt_reconstruct(res_P, moduli, M_i, N_i)
-        reconstructed_signed = reconstructed_product
-        if expected_product < 0 and reconstructed_product >= M_total // 2:
-            reconstructed_signed = reconstructed_product - M_total
+        if not use_prns and not chip_exceed:
+            # ── PATH 1: FLAT 16-TILE DYNAMIC RNS ─────────────────────────────
+            moduli = opt["moduli"]
+            num_active = opt["num_tiles"]
+            num_gated = opt["num_gated"]
+            energy_saved_pct = opt["energy_saved_pct"]
+            M_total = opt["M_total"]
+            M_i = opt["M_i"]
+            N_i = opt["N_i"]
 
-        is_match = (reconstructed_product == expected_product) or (reconstructed_signed == expected_product)
-        effective_prod = reconstructed_signed if expected_product < 0 else reconstructed_product
+            res_A = [A % m for m in moduli]
+            res_B = [B % m for m in moduli]
+            res_P = [((ra * rb) % m) for ra, rb, m in zip(res_A, res_B, moduli)]
 
-        radix16_prod = [{"r_h": rp // 16, "r_l": rp % 16, "wg_h": rp // 16, "wg_l": rp % 16} for rp in res_P]
+            reconstructed_product = crt_reconstruct(res_P, moduli, M_i, N_i)
+            reconstructed_signed = reconstructed_product
+            if expected_product < 0 and reconstructed_product >= M_total // 2:
+                reconstructed_signed = reconstructed_product - M_total
 
-        # Detailed per-tile state list for all 16 tiles
-        tile_states = []
-        for i in range(16):
-            if i < num_active:
-                m = moduli[i]
-                ra, rb, rp = res_A[i], res_B[i], res_P[i]
+            is_match = (reconstructed_product == expected_product) or (reconstructed_signed == expected_product)
+            effective_prod = reconstructed_signed if expected_product < 0 else reconstructed_product
+
+            radix16_prod = [{"r_h": rp // 16, "r_l": rp % 16, "wg_h": rp // 16, "wg_l": rp % 16} for rp in res_P]
+
+            tile_states = []
+            for i in range(16):
+                if i < num_active:
+                    m = moduli[i]
+                    ra, rb, rp = res_A[i], res_B[i], res_P[i]
+                    rph, rpl = rp // 16, rp % 16
+                    m_str = f"{m} (F1)" if m == 17 else (f"{m} (F2)" if m == 257 else f"{m:3d}")
+                    tile_states.append({
+                        "tile_id": i, "modulus": m, "modulus_label": m_str,
+                        "is_active": True, "res_a": ra, "res_b": rb, "res_p": rp,
+                        "r_h": rph, "r_l": rpl, "status": "ACTIVE",
+                        "tree_path": f"Tree H: WG #{rph:2d} | Tree L: WG #{rpl:2d}",
+                    })
+                else:
+                    tile_states.append({
+                        "tile_id": i, "modulus": 0, "modulus_label": "---",
+                        "is_active": False, "res_a": None, "res_b": None, "res_p": None,
+                        "r_h": 0, "r_l": 0, "status": "GATED (0 W Standby)",
+                        "tree_path": "GATED (0 W Dynamic)",
+                    })
+
+            hex_prod = f"0x{expected_product:016X}" if expected_product >= 0 else f"-0x{abs(expected_product):016X}"
+
+            crt_steps = []
+            crt_steps.append(f"=== Project JANUS Dynamic Power-Gated 16-Tree Multiplication: {A:,} × {B:,} = {expected_product:,} ===")
+            crt_steps.append("")
+            crt_steps.append(f"Operand A           : {A:,}  ({bit_a} bits)")
+            crt_steps.append(f"Operand B           : {B:,}  ({bit_b} bits)")
+            crt_steps.append(f"Expected Product    : {expected_product:,}  ({hex_prod})")
+            crt_steps.append(f"Product Bit-Range   : {bit_range} bits")
+            crt_steps.append(f"Active Hardware     : {num_active} of 16 Tiles ({num_gated} Gated -> {energy_saved_pct:.1f}% Dynamic Energy Saved)")
+            crt_steps.append(f"Selected Moduli     : {moduli} (Greedy Descending Coprime Set)")
+            crt_steps.append(f"Dynamic Range       : M_total = prod(m_i) = {M_total:,} ≈ 2^{M_total.bit_length()} bits")
+            crt_steps.append("")
+            crt_steps.append(f"{'Tile':>5}  {'Modulus':>9}  {'r_A':>5}  {'r_B':>5}  {'r_P=(A×B)%m':>17}  {'Radix-16 [rH, rL]':>19}  {'16-Tree Waveguides':>26}  {'State':>10}")
+            crt_steps.append(f"{'─'*5}  {'─'*9}  {'─'*5}  {'─'*5}  {'─'*17}  {'─'*19}  {'─'*26}  {'─'*10}")
+            for t in tile_states:
+                if t["is_active"]:
+                    crt_steps.append(f"  T{t['tile_id']:02d}  mod {t['modulus_label']:>7}    {t['res_a']:>5}  {t['res_b']:>5}  ({t['res_a']}×{t['res_b']}) mod {t['modulus']} = {t['res_p']:>4}       [{t['r_h']:2d}, {t['r_l']:2d}] (<= 16)      Tree H: #{t['r_h']:2d} | Tree L: #{t['r_l']:2d}   ACTIVE")
+                else:
+                    crt_steps.append(f"  T{t['tile_id']:02d}  mod {'---':>7}        -      -                 -                       -                               -              GATED (OFF)")
+            crt_steps.append("")
+            crt_steps.append("=== CRT Adder Tree Dynamic Reconstruction ===")
+            crt_steps.append(f"Reconstructed Product = {effective_prod:,}")
+            crt_steps.append(f"Arithmetic Deviation  = {abs(effective_prod - expected_product)}")
+            crt_steps.append(f"Sign-Off Status       = {'[PASS] BIT-EXACT 0-ERROR RECONSTRUCTION' if is_match else '[FAIL] DYNAMIC RANGE OVERFLOW (Wrapped Modulo M_total)'}")
+
+            status = "BIT_EXACT_0_ERROR" if is_match else "RANGE_OVERFLOW"
+
+        elif use_prns:
+            # ── PATH 2: THREE EQUATIONS (PRNS HYBRID MEMORY-OPTICAL) ─────────
+            def _split64_signed(val):
+                xl = val % (1 << 32)
+                if xl >= (1 << 31):
+                    xl -= 1 << 32
+                xh = (val - xl) // (1 << 32)
+                return xh, xl
+
+            A_H, A_L = _split64_signed(A)
+            B_H, B_L = _split64_signed(B)
+
+            cluster = generate_optimal_moduli(65, max_tiles=8)
+            c_mod = cluster["moduli"]
+            c_M = cluster["M_total"]
+            c_Mi = cluster["M_i"]
+            c_Ni = cluster["N_i"]
+
+            def _rns_mul(x, y):
+                rx = [x % m for m in c_mod]; ry = [y % m for m in c_mod]
+                rp = [(rx[i] * ry[i]) % c_mod[i] for i in range(len(c_mod))]
+                s = sum(rp[i] * c_Mi[i] * c_Ni[i] for i in range(len(c_mod)))
+                val = s % c_M
+                if val >= c_M // 2:
+                    val -= c_M
+                return val
+
+            P_LL = _rns_mul(A_L, B_L)
+            P_HH = _rns_mul(A_H, B_H)
+            P_cross = A_L * B_H + A_H * B_L
+
+            effective_prod = (P_HH << 64) + (P_cross << 32) + P_LL
+            is_match = (effective_prod == expected_product)
+
+            num_active = 16; num_gated = 0; energy_saved_pct = 0.0
+            moduli = c_mod + c_mod
+            M_total = c_M
+            res_A = [A_L % m for m in c_mod]; res_B = [B_L % m for m in c_mod]
+            res_P = [(ra * rb) % m for ra, rb, m in zip(res_A, res_B, c_mod)]
+            radix16_prod = [{"r_h": rp // 16, "r_l": rp % 16, "wg_h": rp // 16, "wg_l": rp % 16} for rp in res_P]
+
+            tile_states = []
+            for i in range(8):
+                m = c_mod[i]; ra = res_A[i]; rb = res_B[i]; rp = res_P[i]
                 rph, rpl = rp // 16, rp % 16
-                m_str = f"{m} (F1)" if m == 17 else (f"{m} (F2)" if m == 257 else f"{m:3d}")
-                tile_states.append({
-                    "tile_id": i,
-                    "modulus": m,
-                    "modulus_label": m_str,
-                    "is_active": True,
-                    "res_a": ra,
-                    "res_b": rb,
-                    "res_p": rp,
-                    "r_h": rph,
-                    "r_l": rpl,
-                    "status": "ACTIVE",
-                    "tree_path": f"Tree H: WG #{rph:2d} | Tree L: WG #{rpl:2d}",
-                })
-            else:
-                m = COPRIME_MODULI_ASCENDING[i] if i < len(COPRIME_MODULI_ASCENDING) else 0
-                tile_states.append({
-                    "tile_id": i,
-                    "modulus": m,
-                    "modulus_label": f"{m:3d}",
-                    "is_active": False,
-                    "res_a": None,
-                    "res_b": None,
-                    "res_p": None,
-                    "r_h": 0,
-                    "r_l": 0,
-                    "status": "GATED (0 W Standby)",
-                    "tree_path": "GATED (0 W Dynamic)",
-                })
+                m_str = f"{m} (F2)" if m == 257 else f"{m:3d}"
+                tile_states.append({"tile_id": i, "modulus": m, "modulus_label": m_str,
+                    "is_active": True, "res_a": ra, "res_b": rb, "res_p": rp,
+                    "r_h": rph, "r_l": rpl, "status": "ACTIVE — Cluster 1 (A_L×B_L)",
+                    "tree_path": f"Tree H: WG #{rph:2d} | Tree L: WG #{rpl:2d}"})
+            for i in range(8):
+                m = c_mod[i]; ra = A_H % m; rb = B_H % m; rp = (ra * rb) % m
+                rph, rpl = rp // 16, rp % 16
+                m_str = f"{m} (F2)" if m == 257 else f"{m:3d}"
+                tile_states.append({"tile_id": i+8, "modulus": m, "modulus_label": m_str,
+                    "is_active": True, "res_a": ra, "res_b": rb, "res_p": rp,
+                    "r_h": rph, "r_l": rpl, "status": "ACTIVE — Cluster 2 (A_H×B_H)",
+                    "tree_path": f"Tree H: WG #{rph:2d} | Tree L: WG #{rpl:2d}"})
 
-        hex_prod = f"0x{expected_product:016X}" if expected_product >= 0 else f"-0x{abs(expected_product):016X}"
+            hex_prod = f"0x{expected_product:016X}" if expected_product >= 0 else f"-0x{abs(expected_product):016X}"
 
-        crt_steps = []
-        crt_steps.append(f"=== Project JANUS Dynamic Power-Gated 16-Tree Multiplication: {A:,} × {B:,} = {expected_product:,} ===")
-        crt_steps.append("")
-        crt_steps.append(f"Operand A           : {A:,}")
-        crt_steps.append(f"Operand B           : {B:,}")
-        crt_steps.append(f"Expected Product    : {expected_product:,}  ({hex_prod})")
-        crt_steps.append(f"Product Bit-Range   : {bit_range} bits")
-        crt_steps.append(f"Active Hardware     : {num_active} of 16 Tiles ({num_gated} Gated -> {energy_saved_pct:.1f}% Dynamic Energy Saved)")
-        crt_steps.append(f"Selected Moduli     : {moduli} (Lowest Coprime Set)")
-        crt_steps.append(f"Sub-Cluster Range   : M_total = prod(m_i) = {M_total:,} ≈ 2^{M_total.bit_length()} bits")
-        crt_steps.append("")
-        crt_steps.append(f"{'Tile':>5}  {'Modulus':>9}  {'r_A':>5}  {'r_B':>5}  {'r_P=(A×B)%m':>17}  {'Radix-16 [rH, rL]':>19}  {'16-Tree Waveguides':>26}  {'State':>10}")
-        crt_steps.append(f"{'─'*5}  {'─'*9}  {'─'*5}  {'─'*5}  {'─'*17}  {'─'*19}  {'─'*26}  {'─'*10}")
-        for t in tile_states:
-            if t["is_active"]:
-                crt_steps.append(f"  T{t['tile_id']:02d}  mod {t['modulus_label']:>7}    {t['res_a']:>5}  {t['res_b']:>5}  ({t['res_a']}×{t['res_b']}) mod {t['modulus']} = {t['res_p']:>4}       [{t['r_h']:2d}, {t['r_l']:2d}] (<= 16)      Tree H: #{t['r_h']:2d} | Tree L: #{t['r_l']:2d}   ACTIVE")
-            else:
-                crt_steps.append(f"  T{t['tile_id']:02d}  mod {t['modulus_label']:>7}        -      -                 -                       -                               -              GATED (OFF)")
-        crt_steps.append("")
-        crt_steps.append("=== CRT Adder Tree Dynamic Reconstruction ===")
-        crt_steps.append(f"Reconstructed Product = {effective_prod:,}")
-        crt_steps.append(f"Arithmetic Deviation  = {abs(effective_prod - expected_product)}")
-        crt_steps.append(f"Sign-Off Status       = {'[PASS] BIT-EXACT 0-ERROR RECONSTRUCTION' if is_match else '[FAIL] DYNAMIC RANGE OVERFLOW (Wrapped Modulo M_total)'}")
-        if not is_match:
-            crt_steps.append(f"Warning               : Product ({bit_range} bits) exceeds M_total ({M_total.bit_length()} bits). Single-cycle exact reconstruction requires {math.ceil(bit_range/5.5)} active channels (or 32-Tile Datacenter mode).")
+            crt_steps = []
+            crt_steps.append(f"=== Project JANUS Three Equations / PRNS (Hybrid Memory-Optical) ===")
+            crt_steps.append("")
+            crt_steps.append(f"Operand A           : {A:,}  ({bit_a} bits)  → A_H={A_H}, A_L={A_L}")
+            crt_steps.append(f"Operand B           : {B:,}  ({bit_b} bits)  → B_H={B_H}, B_L={B_L}")
+            crt_steps.append(f"Expected Product    : {expected_product:,}  ({hex_prod})")
+            crt_steps.append(f"Product Bit-Range   : {bit_range} bits")
+            crt_steps.append(f"Hardware Allocation : 16 Tiles (Dual 8-Tile Optical Clusters)")
+            crt_steps.append(f"8-Tile Cluster Set  : {c_mod}")
+            crt_steps.append(f"Cluster M_total     : {c_M:,} ≈ 2^{math.log2(c_M):.2f} bits  (covers 64-bit sub-products)")
+            crt_steps.append("")
+            crt_steps.append(f"  Equation 1 — Optical Cluster 1 (Tiles 0-7):  P_LL = A_L×B_L = {P_LL:,}")
+            crt_steps.append(f"  Equation 2 — Optical Cluster 2 (Tiles 8-15): P_HH = A_H×B_H = {P_HH:,}")
+            crt_steps.append(f"  Equation 3 — Memory Trick (CMOS SRAM LUT):   P_cross = A_L×B_H + A_H×B_L = {P_cross:,}")
+            crt_steps.append("")
+            crt_steps.append(f"  Final Assembly:  Product = (P_HH << 64) + (P_cross << 32) + P_LL = {effective_prod:,}")
+            crt_steps.append(f"  Chip Ceiling  : {CHIP_MAX_PRNS_BITS} bits (64×64 → 128-bit product)")
+            crt_steps.append(f"  Sign-Off      : {'[PASS] BIT-EXACT 0-ERROR (Three Equations)' if is_match else '[FAIL] RECONSTRUCTION ERROR'}")
+
+            status = "BIT_EXACT_PRNS" if is_match else "PRNS_ERROR"
+
+        else:
+            # ── PATH 3: CHIP OVERFLOW ─────────────────────────────────────────
+            effective_prod = 0
+            is_match = False
+            num_active = 0
+            num_gated = 16
+            energy_saved_pct = 100.0
+            moduli = []
+            M_total = 1
+            res_A = []
+            res_B = []
+            res_P = []
+            radix16_prod = []
+            tile_states = [{"tile_id": i, "modulus": 0, "modulus_label": "---",
+                "is_active": False, "res_a": None, "res_b": None, "res_p": None,
+                "r_h": 0, "r_l": 0, "status": "N/A (chip overflow)", "tree_path": "N/A"} for i in range(16)]
+
+            hex_prod = f"0x{expected_product:016X}" if expected_product >= 0 else f"-0x{abs(expected_product):016X}"
+
+            crt_steps = []
+            crt_steps.append(f"=== Project JANUS Chip Capacity Exceeded (Path 3) ===")
+            crt_steps.append(f"Operand A   : {bit_a} bits  (max per operand = 64 bits for PRNS path)")
+            crt_steps.append(f"Operand B   : {bit_b} bits")
+            crt_steps.append(f"Product     : {bit_range} bits")
+            crt_steps.append(f"Flat limit  : {CHIP_MAX_FLAT_BITS} bits  (16 tiles, top coprime ≤257)")
+            crt_steps.append(f"PRNS limit  : {CHIP_MAX_PRNS_BITS} bits  (64×64 three-equations)")
+            crt_steps.append(f"Sign-Off    : [FAIL] INPUT EXCEEDS 16-TILE CHIP MAXIMUM")
+            status = "CHIP_OVERFLOW"
 
         result = {
             "operand_A": A,
@@ -963,6 +1065,9 @@ class JanusMasterOrchestrator:
             "reconstructed_product": effective_prod,
             "reconstructed_product_str": str(effective_prod),
             "is_match": is_match,
+            "use_prns": use_prns,
+            "chip_exceed": chip_exceed,
+            "status": status,
             "crt_steps": crt_steps,
         }
 
@@ -974,23 +1079,10 @@ class JanusMasterOrchestrator:
             print(f"  Expected Product Hex          : {hex_prod}")
             print(f"  Product Bit-Range Detected    : {bit_range} bits")
             print(f"  Active Optical Tiles          : {num_active} / 16 ({num_gated} Gated -> {energy_saved_pct:.1f}% Energy Saved)")
-            print(f"  Selected Minimal Moduli       : {moduli} (Lowest Coprime Moduli)")
-            print(f"  Effective Dynamic Range       : M_total = {M_total:,} ({M_total.bit_length()} bits)")
-            print(f"\n  [1] Dynamic Spatial Residue Domain Execution ({num_active} Active Tiles, {num_gated} Gated):")
-            print("  -----------------------------------------------------------------------------------------------------------------")
-            print("  Tile | Modulus | r_A | r_B | r_P = (A*B)%m | Radix-16 [rH, rL] | 16-Tree Optical Allocation (<= 16) | Operational State")
-            print("  -----+---------+-----+-----+---------------+-------------------+------------------------------------+------------------")
-            for t in tile_states:
-                if t["is_active"]:
-                    print(f"   {t['tile_id']:02d}  | {t['modulus_label']:>7} | {t['res_a']:3d} | {t['res_b']:3d} |      {t['res_p']:3d}      |      [{t['r_h']:2d}, {t['r_l']:2d}]     | Tree H: WG #{t['r_h']:2d} | Tree L: WG #{t['r_l']:2d} | ACTIVE")
-                else:
-                    print(f"   {t['tile_id']:02d}  | {t['modulus_label']:>7} |   - |   - |        -      |           -       | -                                  | GATED (0 W)")
-            print("  -----------------------------------------------------------------------------------------------------------------")
-            print("\n  [2] CRT Adder Tree Dynamic Reconstruction:")
-            print("  -------------------------------------------------------------")
-            print(f"  Reconstructed Product : {effective_prod}")
-            print(f"  Arithmetic Deviation  : {abs(effective_prod - expected_product)}")
-            print(f"  Sign-Off Status       : {'[PASS] BIT-EXACT 0-ERROR RECONSTRUCTION' if is_match else '[FAIL] MISMATCH'}")
+            print(f"  Selected Minimal Moduli       : {moduli}")
+            print(f"  Effective Dynamic Range       : M_total = {M_total:,}")
+            print(f"\n  Execution Mode                : {'Three Equations PRNS' if use_prns else ('Flat RNS' if not chip_exceed else 'OVERFLOW')}")
+            print(f"  Sign-Off Status               : {'[PASS] BIT-EXACT 0-ERROR' if is_match else '[FAIL]'}")
             print("=" * 80 + "\n")
 
         return result

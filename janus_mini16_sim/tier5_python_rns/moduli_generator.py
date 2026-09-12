@@ -308,13 +308,22 @@ def crt_reconstruct(
     return int(X_acc % M_tot)
 
 
-# Ascending pairwise coprime moduli pool (m <= 257) for dynamic power-proportional tile gating:
+# Legacy ascending pool — kept as reference; algorithm now uses descending greedy.
 COPRIME_MODULI_ASCENDING = [
     16, 17, 19, 23, 25, 27, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67,
     71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137,
     139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199,
     211, 223, 227, 229, 233, 239, 241, 251, 257
 ]
+
+# Maximum single-chip tile count
+CHIP_MAX_TILES: int = 16
+# Physical WG ceiling: max modulus such that residue r_H = r//16 <= 16
+CHIP_MAX_MODULUS: int = 257
+# Flat 16-tile M_total coverage (bits) — product of top-16 coprime moduli <= 257
+CHIP_MAX_FLAT_BITS: int = 125   # log2(M_16) ≈ 125.79
+# PRNS (Three Equations) absolute ceiling: 64-bit operands → 128-bit product
+CHIP_MAX_PRNS_BITS: int = 128
 
 
 def determine_bit_range(val: int) -> int:
@@ -323,56 +332,102 @@ def determine_bit_range(val: int) -> int:
     return abs_v.bit_length() if abs_v > 0 else 1
 
 
+def generate_optimal_moduli(
+    required_bits: int,
+    max_modulus: int = CHIP_MAX_MODULUS,
+    max_tiles: int = CHIP_MAX_TILES,
+) -> Dict[str, Any]:
+    """
+    Greedy descending algorithm: selects the minimum set of pairwise-coprime
+    moduli in [2, max_modulus], starting from the largest, until their product
+    M_total >= 2^required_bits.
+
+    WG <= 16 constraint is enforced by max_modulus <= 257:
+        max residue = 256 = 16*16+0  =>  r_H <= 16, r_L <= 15  ✓
+
+    Strategy — descend from 257 (each contributes ~8 bits) rather than
+    ascending from 16 (each contributes ~4 bits). This minimises tile count.
+
+    Returns:
+        moduli         : ordered list of selected moduli (largest first)
+        M_total        : product of selected moduli
+        M_bits         : log2(M_total)
+        num_tiles      : number of tiles used
+        num_gated      : CHIP_MAX_TILES - num_tiles  (power-gated tiles)
+        energy_saved_pct
+        overflow       : True if max_tiles was exhausted before covering required_bits
+        M_i, N_i       : CRT projection / inverse arrays
+    """
+    from math import gcd as _gcd
+    target = 1 << required_bits
+    selected: List[int] = []
+    M = 1
+    for candidate in range(max_modulus, 1, -1):
+        if all(_gcd(candidate, m) == 1 for m in selected):
+            selected.append(candidate)
+            M *= candidate
+            if M >= target:
+                break
+        if len(selected) >= max_tiles:
+            break
+
+    num_tiles = len(selected)
+    overflow = M < target
+    num_gated = max(0, CHIP_MAX_TILES - num_tiles)
+    energy_saved_pct = (num_gated / CHIP_MAX_TILES) * 100.0 if CHIP_MAX_TILES > 0 else 0.0
+
+    M_i = [M // m for m in selected]
+    N_i = [mod_inverse(M_i[i], selected[i]) for i in range(num_tiles)]
+
+    return {
+        "moduli": selected,
+        "M_total": M,
+        "M_bits": math.log2(M) if M > 0 else 0.0,
+        "num_tiles": num_tiles,
+        "num_gated": num_gated,
+        "energy_saved_pct": energy_saved_pct,
+        "overflow": overflow,
+        "M_i": M_i,
+        "N_i": N_i,
+    }
+
+
 def select_minimal_dynamic_moduli(
     target_value: int,
     is_signed: bool = False,
-    max_tiles: int = 16,
+    max_tiles: int = CHIP_MAX_TILES,
 ) -> Dict[str, Any]:
     """
-    Determines the bit range of the target number/product and utilizes the 
-    minimum number of tiles required for exact arithmetic using the lowest 
-    pairwise coprime moduli possible (e.g. 16, 17, 19...) rather than 
-    activating all 16 tiles or large moduli (257, 256).
-    
-    Dynamically power-gates all unneeded tiles to 0 W dynamic power.
+    Wrapper around generate_optimal_moduli for a concrete integer value.
+    Computes the required bit range from the value and calls the descending
+    greedy algorithm, returning the legacy key names expected by callers.
     """
     abs_val = abs(target_value)
     bit_range = determine_bit_range(target_value)
-    
-    # Required dynamic range: signed needs M > 2 * |val|, unsigned needs M > |val|
-    needed_range = max(2, (2 * abs_val + 1) if is_signed else (abs_val + 1))
-    
-    active_moduli = []
-    curr_M = 1
-    for m in COPRIME_MODULI_ASCENDING:
-        active_moduli.append(m)
-        curr_M *= m
-        if curr_M >= needed_range and len(active_moduli) >= 1:
-            break
-        if len(active_moduli) >= max_tiles:
-            break
-            
-    num_active = len(active_moduli)
-    num_gated = max(0, max_tiles - num_active)
-    energy_saved_pct = (num_gated / max_tiles) * 100.0 if max_tiles > 0 else 0.0
-    
-    M_tot = curr_M
-    M_i = [M_tot // m for m in active_moduli]
-    N_i = [mod_inverse(M_i[i], active_moduli[i]) for i in range(num_active)]
-    
+    # Need M > 2*|val| for signed, M > |val| for unsigned
+    required_bits = bit_range + (1 if is_signed else 0) + 1
+
+    result = generate_optimal_moduli(required_bits, max_tiles=max_tiles)
+    moduli = result["moduli"]
+    M_tot = result["M_total"]
+    num_active = result["num_tiles"]
+    num_gated = result["num_gated"]
+    energy_saved_pct = result["energy_saved_pct"]
+
     return {
         "target_value": target_value,
         "bit_range": bit_range,
         "is_signed": is_signed,
-        "needed_range": needed_range,
+        "needed_range": 1 << required_bits,
         "num_active_tiles": num_active,
         "num_gated_tiles": num_gated,
         "energy_saved_pct": energy_saved_pct,
-        "active_moduli": active_moduli,
+        "active_moduli": moduli,
         "M_total": M_tot,
         "M_bits": math.log2(M_tot) if M_tot > 0 else 0.0,
-        "M_i": M_i,
-        "N_i": N_i,
+        "M_i": result["M_i"],
+        "N_i": result["N_i"],
+        "overflow": result["overflow"],
     }
 
 
