@@ -1514,45 +1514,14 @@ def app(environ, start_response):
                         "tier": "layout",
                         "files": [
                             {
-                                "name": "README.md",
-                                "path": "janus_mini16_sim/layout/README.md",
-                                "desc": "GDS II Photonic Layout & Micro-Packaging Architecture Specification"
-                            }
-                        ]
-                    },
-                    {
-                        "category": "Architecture Specifications & Whitepapers",
-                        "tier": "architecture",
-                        "files": [
-                            {
-                                "name": "JANUS_ASYMMETRIC_16TREE_ARCHITECTURE.md",
-                                "path": "JANUS_ASYMMETRIC_16TREE_ARCHITECTURE.md",
-                                "desc": "Formal Specification of the Asymmetric 16-Tree Fermat Permutation Fabric"
+                                "name": "generate_mini16_gds.py",
+                                "path": "janus_mini16_sim/layout/generate_mini16_gds.py",
+                                "desc": "Photonic Top-Die GDS II Mask Synthesizer (Si3N4 Core, LiTaO3, Sb2S3 16-Tree, SAC2M APD, Cu TDV)"
                             },
                             {
-                                "name": "README.md",
-                                "path": "README.md",
-                                "desc": "Project JANUS Master Hardware Repository Overview"
-                            },
-                            {
-                                "name": "PCM_MATERIAL_SELECTION_RATIONALE.md",
-                                "path": "paper_latex/PCM_MATERIAL_SELECTION_RATIONALE.md",
-                                "desc": "Phase-Change Material Selection & Figure-of-Merit Rationale"
-                            },
-                            {
-                                "name": "JANUS_MINI_16T_CO_SIMULATION_SPEC.md",
-                                "path": "public/documentation_reports/JANUS_MINI_16T_CO_SIMULATION_SPEC.md",
-                                "desc": "Full Co-Simulation Technical Specification"
-                            },
-                            {
-                                "name": "JANUS_MINI_16T_ALGORITHMS_AND_FLOWCHARTS.md",
-                                "path": "public/documentation_reports/JANUS_MINI_16T_ALGORITHMS_AND_FLOWCHARTS.md",
-                                "desc": "16-Tree Fermat Algorithms & Architectural Flowcharts"
-                            },
-                            {
-                                "name": "PROJECT_JANUS_STRATEGIC_ROADMAP.md",
-                                "path": "public/documentation_reports/PROJECT_JANUS_STRATEGIC_ROADMAP.md",
-                                "desc": "Master Engineering Roadmap & Foundational Milestones"
+                                "name": "generate_cmos_base_gds.py",
+                                "path": "janus_mini16_sim/layout/generate_cmos_base_gds.py",
+                                "desc": "65nm CMOS Base-Die GDS II Mask Synthesizer (StrongARM, Deserializers, Wallace-Kogge SIMD, Dual-LUT SRAM)"
                             }
                         ]
                     }
