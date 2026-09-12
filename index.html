@@ -2043,7 +2043,7 @@
         </div>
 
         <div class="card" id="tiles-card">
-          <div class="card-title">🌐 16-Tile Spatial Residue Waveguide Allocation (1-of-256 One-Hot Encoding)</div>
+          <div class="card-title">🌐 16-Tile Spatial Residue Waveguide Allocation (Asymmetric 16-Tree Fermat Core: Radix-16 / 1-of-17 Encoding, Inputs ≤ 16)</div>
           <div id="tiles-container" class="tiles-grid">
             <!-- Populated by JS -->
           </div>
@@ -2861,22 +2861,22 @@
               <select id="chart-tile-select" class="input-box"
                 style="padding: 2px 8px; height: 28px; font-size: 0.8rem;" onchange="changeChartTile(this.value)">
                 <option value="all" selected>All 16 Tiles (Ensemble)</option>
-                <option value="0">Tile 00 (Mod 256)</option>
-                <option value="1">Tile 01 (Mod 251)</option>
-                <option value="2">Tile 02 (Mod 243)</option>
-                <option value="3">Tile 03 (Mod 241)</option>
-                <option value="4">Tile 04 (Mod 239)</option>
-                <option value="5">Tile 05 (Mod 233 - Center Hotspot)</option>
-                <option value="6">Tile 06 (Mod 229 - Center Hotspot)</option>
-                <option value="7">Tile 07 (Mod 227)</option>
-                <option value="8">Tile 08 (Mod 223)</option>
-                <option value="9">Tile 09 (Mod 211 - Center Hotspot)</option>
-                <option value="10">Tile 10 (Mod 199 - Center Hotspot)</option>
-                <option value="11">Tile 11 (Mod 197)</option>
-                <option value="12">Tile 12 (Mod 193)</option>
-                <option value="13">Tile 13 (Mod 191)</option>
-                <option value="14">Tile 14 (Mod 181)</option>
-                <option value="15">Tile 15 (Mod 179)</option>
+                <option value="0">Tile 00 (Mod 257 - Fermat F2 Prime)</option>
+                <option value="1">Tile 01 (Mod 256)</option>
+                <option value="2">Tile 02 (Mod 251)</option>
+                <option value="3">Tile 03 (Mod 243)</option>
+                <option value="4">Tile 04 (Mod 241)</option>
+                <option value="5">Tile 05 (Mod 239)</option>
+                <option value="6">Tile 06 (Mod 233 - Center Hotspot)</option>
+                <option value="7">Tile 07 (Mod 229 - Center Hotspot)</option>
+                <option value="8">Tile 08 (Mod 227)</option>
+                <option value="9">Tile 09 (Mod 223)</option>
+                <option value="10">Tile 10 (Mod 211 - Center Hotspot)</option>
+                <option value="11">Tile 11 (Mod 199 - Center Hotspot)</option>
+                <option value="12">Tile 12 (Mod 197)</option>
+                <option value="13">Tile 13 (Mod 193)</option>
+                <option value="14">Tile 14 (Mod 191)</option>
+                <option value="15">Tile 15 (Mod 181)</option>
               </select>
               <button class="btn-action" onclick="setChartZoom('full')"
                 style="padding: 2px 10px; height: 28px; font-size: 0.8rem;">Full Timeline</button>
@@ -4284,8 +4284,8 @@
             </div>
             <h4 style="font-size:0.95rem; color:var(--text-main); margin-bottom:0.4rem;">Forward Moduli Projection</h4>
             <p style="font-size:0.82rem; color:var(--text-muted); line-height:1.5;">
-              Computes residues <i>x</i><sub>i</sub> = <i>X</i> mod <i>m</i><sub>i</sub> across the 8 coprime moduli
-              &Mscr;₈ = {255, 253, 251, 247, 241, 239, 233, 229}.
+              Computes residues <i>x</i><sub>i</sub> = <i>X</i> mod <i>m</i><sub>i</sub> across 16 pairwise coprime moduli
+              &Mscr;<sub>16</sub> = {257, 256, 251, 243, 241, 239, 233, 229, 227, 223, 211, 199, 197, 193, 191, 181} (all <i>m</i><sub>i</sub> &le; 257).
             </p>
           </div>
 
@@ -4295,12 +4295,11 @@
               <span
                 style="font-size:0.75rem; font-weight:800; color:var(--accent-cyan); background:rgba(0,242,254,0.1); padding:2px 8px; border-radius:6px;">STAGE
                 4</span>
-              <span style="font-size:0.8rem; color:var(--text-muted);">1-of-256 WGs</span>
+              <span style="font-size:0.8rem; color:var(--text-muted);">Radix-16 (1-of-17 WGs)</span>
             </div>
             <h4 style="font-size:0.95rem; color:var(--text-main); margin-bottom:0.4rem;">Spatial Token Batching</h4>
             <p style="font-size:0.82rem; color:var(--text-muted); line-height:1.5;">
-              Encodes residue scalar values into 1-of-256 spatial waveguides, packing 32 attention heads simultaneously
-              across the 32 crossbar rows (100% occupancy).
+              Decomposes residue scalar values into Radix-16 digits entering 1-of-17 spatial waveguide 16-Tree cores (inputs &le; 16), packing 32 attention heads simultaneously across crossbar rows (100% occupancy).
             </p>
           </div>
 
@@ -5243,7 +5242,7 @@
           `;
         }
 
-        const mList = res.moduli_16 || res.moduli || [256, 251, 243, 241, 239, 233, 229, 227, 223, 211, 199, 197, 193, 191, 181, 179];
+        const mList = res.moduli_16 || res.moduli || [257, 256, 251, 243, 241, 239, 233, 229, 227, 223, 211, 199, 197, 193, 191, 181];
         const rList = res.residues_16 || res.residues || mList.map(m => 42 % m);
         renderTiles(mList, rList);
 
@@ -5276,7 +5275,7 @@
         }
 
         // --- Re-render tile grid with product residues ---
-        const moduli = res.moduli || [256, 251, 243, 241, 239, 233, 229, 227, 223, 211, 199, 197, 193, 191, 181, 179];
+        const moduli = res.moduli || [257, 256, 251, 243, 241, 239, 233, 229, 227, 223, 211, 199, 197, 193, 191, 181];
         const prodResidues = res.optical_product_residues || [];
         const resA = res.optical_residues_a || [];
         const resB = res.optical_residues_b || [];
@@ -5328,8 +5327,8 @@
         const titleEl = cardTitle.querySelector('.card-title');
         if (titleEl) {
           titleEl.textContent = isProduct
-            ? '🌐 16-Tile Spatial Residue Waveguide Allocation — Product Residues (A × B)'
-            : '🌐 16-Tile Spatial Residue Waveguide Allocation (1-of-256 One-Hot Encoding)';
+            ? '🌐 16-Tile Spatial Residue Waveguide Allocation — Product Residues (Asymmetric 16-Tree Fermat Core, Inputs ≤ 16)'
+            : '🌐 16-Tile Spatial Residue Waveguide Allocation (Asymmetric 16-Tree Fermat Core: Radix-16 / 1-of-17 Encoding, Inputs ≤ 16)';
         }
       }
       container.innerHTML = '';
@@ -5337,24 +5336,30 @@
         const r = (residues && residues[i] !== undefined) ? residues[i] : 0;
         const ra = (resA && resA[i] !== undefined) ? resA[i] : null;
         const rb = (resB && resB[i] !== undefined) ? resB[i] : null;
+        const rh = Math.floor(r / 16);
+        const rl = r % 16;
         const pct = Math.min(100, Math.max(4, (r / m) * 100));
+        const mLabel = (m === 257) ? `mod ${m} (F₂)` : `mod ${m}`;
         const abRow = (isProduct && ra !== null && rb !== null)
           ? `<div style="font-size:0.69rem; color:var(--text-muted); margin-top:3px; font-family:monospace;">
-               r<sub>A</sub>=${ra} &times; r<sub>B</sub>=${rb} → WG <b>#${r}</b>
+               r<sub>A</sub>=${ra} &times; r<sub>B</sub>=${rb} &rarr; r<sub>P</sub>=<b>${r}</b>
              </div>`
           : '';
         container.innerHTML += `
           <div class="tile-card">
             <div style="display: flex; justify-content: space-between; align-items:center;">
               <span class="tile-num">TILE ${i < 10 ? '0' + i : i}</span>
-              <span class="tile-mod">mod ${m}</span>
+              <span class="tile-mod" style="${m === 257 ? 'color:var(--accent-cyan); font-weight:700;' : ''}">${mLabel}</span>
             </div>
             <div class="tile-val" style="${isProduct ? 'color:var(--accent-cyan);' : ''}">r_${i} = ${r}</div>
             <div class="tile-bar">
               <div class="tile-bar-fill" style="width: ${pct}%; ${isProduct ? 'background:var(--accent-cyan);' : ''}"></div>
             </div>
-            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">
-              Active Waveguide: <b>#${r}</b> / ${m}
+            <div style="font-size: 0.72rem; color: var(--accent-green); margin-top: 4px; font-family: monospace; font-weight:600;">
+              Radix-16: [${rh}, ${rl}] (≤ 16)
+            </div>
+            <div style="font-size: 0.70rem; color: var(--text-muted); margin-top: 2px;">
+              Tree H: <b>WG #${rh}</b> | Tree L: <b>WG #${rl}</b>
             </div>
             ${abRow}
           </div>

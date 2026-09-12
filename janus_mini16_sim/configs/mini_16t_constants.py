@@ -376,7 +376,7 @@ t_reconfig_window: float = 100e-6  # PCM full reconfiguration window (s) [T5]
 # ==============================================================================
 # 2.23 - 2.25 RNS ARITHMETIC, THROUGHPUT & EFFICIENCY
 # ==============================================================================
-m_max: int = 256  # Maximum modulus value [T5]
+m_max: int = 257  # Maximum modulus value (Fermat Prime F_2 = 257) [T5]
 m_bits: int = 8  # Bit-width per residue channel [T4, T5]
 k_int4: int = 1  # Tiles needed for INT4 (ceil(2*4/8)) [T5]
 k_int8: int = 2  # Tiles needed for INT8 (ceil(2*8/8)) [T5]

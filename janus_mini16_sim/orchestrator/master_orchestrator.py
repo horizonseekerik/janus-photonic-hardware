@@ -693,11 +693,34 @@ class JanusMasterOrchestrator:
         is_match = (reconstructed == X) or (reconstructed_signed == X)
         effective_reconstructed = reconstructed_signed if X < 0 else reconstructed
 
+        radix16 = [{"r_h": r // 16, "r_l": r % 16, "wg_h": r // 16, "wg_l": r % 16} for r in residues]
+
+        crt_steps = []
+        crt_steps.append(f"=== Project JANUS Spatial RNS Decomposition & Reconstruction ({len(moduli)} Tiles) ===")
+        crt_steps.append("")
+        crt_steps.append(f"Input Decimal : {X:,}")
+        crt_steps.append(f"Input Hex     : {f'0x{X:016X}' if X >= 0 else f'-0x{abs(X):016X}'}")
+        crt_steps.append(f"Dynamic Range : M_total = prod(m_i) ≈ 2^{M_total.bit_length()} bits")
+        crt_steps.append("")
+        crt_steps.append(f"{'Tile':>5}  {'Modulus':>9}  {'Residue':>8}  {'Radix-16 [rH, rL]':>19}  {'16-Tree Physical Waveguides (<= 16)':>35}")
+        crt_steps.append(f"{'─'*5}  {'─'*9}  {'─'*8}  {'─'*19}  {'─'*35}")
+        for i, (m, r) in enumerate(zip(moduli, residues)):
+            rh, rl = r // 16, r % 16
+            m_lbl = f"{m} (F2)" if m == 257 else f"{m:>3}"
+            crt_steps.append(f"  T{i:02d}  mod {m_lbl:>7}    r={r:>4}       [{rh:2d}, {rl:2d}] (<= 16)      Tree H: WG #{rh:2d} | Tree L: WG #{rl:2d}")
+        crt_steps.append("")
+        crt_steps.append("=== CRT Adder Tree Exact Reconstruction ===")
+        crt_steps.append(f"Raw Adder-Tree Sum = {raw_sum:,}")
+        crt_steps.append(f"Folded mod M_total = {effective_reconstructed:,}")
+        crt_steps.append(f"RRNS Consistency   = {'[PASS] CONSISTENT' if consistent else '[FAIL] FAULT DETECTED'}")
+        crt_steps.append(f"Sign-Off Status    = {'[PASS] BIT-EXACT MATCH (0 error)' if is_match else '[FAIL] MISMATCH'}")
+
         result = {
             "input_decimal": X,
             "input_decimal_str": str(X),
             "input_hex": f"0x{X:016X}" if X >= 0 else f"-0x{abs(X):016X}",
             "residues_16": residues,
+            "radix16": radix16,
             "redundant_residues_2": red_residues,
             "moduli_16": moduli,
             "redundant_moduli_2": red_moduli,
@@ -709,6 +732,7 @@ class JanusMasterOrchestrator:
             "reconstructed_hex": f"0x{effective_reconstructed:016X}" if effective_reconstructed >= 0 else f"-0x{abs(effective_reconstructed):016X}",
             "is_match": is_match,
             "rrns_consistent": consistent,
+            "crt_steps": crt_steps,
         }
 
         if print_output:
@@ -719,7 +743,9 @@ class JanusMasterOrchestrator:
             print("\n  [1] RNS Decomposition (16 Compute + 2 Redundant Channels):")
             print("  -------------------------------------------------------------")
             for idx, (m, r) in enumerate(zip(moduli, residues)):
-                print(f"    Tile {idx:02d} (mod {m:3d}) : r_{idx:02d} = {r:3d} (Waveguide #{r})")
+                rh, rl = r // 16, r % 16
+                m_str = f"{m} (F2)" if m == 257 else f"{m:3d}     "
+                print(f"    Tile {idx:02d} (mod {m_str}) : r_{idx:02d} = {r:3d} (Radix-16 [{rh:2d}, {rl:2d}] -> Tree H: WG #{rh:2d}, Tree L: WG #{rl:2d} <= 16)")
             print(f"    RRNS 0  (mod {red_moduli[0]:3d}) : r_red0 = {red_residues[0]:3d}")
             print(f"    RRNS 1  (mod {red_moduli[1]:3d}) : r_red1 = {red_residues[1]:3d}")
 
@@ -763,6 +789,28 @@ class JanusMasterOrchestrator:
         is_match = (reconstructed_product == expected_product) or (reconstructed_signed == expected_product)
         effective_prod = reconstructed_signed if expected_product < 0 else reconstructed_product
 
+        radix16_prod = [{"r_h": rp // 16, "r_l": rp % 16, "wg_h": rp // 16, "wg_l": rp % 16} for rp in res_P]
+
+        crt_steps = []
+        crt_steps.append(f"=== Project JANUS 16-Tree Optical Multiplication: {A:,} × {B:,} = {expected_product:,} ===")
+        crt_steps.append("")
+        crt_steps.append(f"Operand A = {A:,}  |  Operand B = {B:,}")
+        hex_prod_str = f"0x{expected_product:016X}" if expected_product >= 0 else f"-0x{abs(expected_product):016X}"
+        crt_steps.append(f"Product   = {expected_product:,}  ({hex_prod_str})")
+        crt_steps.append(f"Moduli Dynamic Range: prod(m_i) ≈ 2^{M_total.bit_length()} bits ({len(moduli)} Tiles)")
+        crt_steps.append("")
+        crt_steps.append(f"{'Tile':>5}  {'Modulus':>9}  {'r_A':>5}  {'r_B':>5}  {'r_P=(A×B)%m':>17}  {'Radix-16 [rH, rL]':>19}  {'16-Tree Waveguides (<= 16)':>28}")
+        crt_steps.append(f"{'─'*5}  {'─'*9}  {'─'*5}  {'─'*5}  {'─'*17}  {'─'*19}  {'─'*28}")
+        for idx, (m, ra, rb, rp) in enumerate(zip(moduli, res_A, res_B, res_P)):
+            rph, rpl = rp // 16, rp % 16
+            m_lbl = f"{m} (F2)" if m == 257 else f"{m:>3}"
+            crt_steps.append(f"  T{idx:02d}  mod {m_lbl:>7}    {ra:>5}  {rb:>5}  ({ra}×{rb}) mod {m} = {rp:>4}       [{rph:2d}, {rpl:2d}] (<= 16)      Tree H: #{rph:2d} | Tree L: #{rpl:2d}")
+        crt_steps.append("")
+        crt_steps.append("=== CRT Adder Tree Global Reconstruction ===")
+        crt_steps.append(f"Reconstructed Product = {reconstructed_product:,}")
+        crt_steps.append(f"Arithmetic Deviation  = {abs(reconstructed_product - expected_product)}")
+        crt_steps.append(f"Sign-Off Status       = {'[PASS] BIT-EXACT 0-ERROR RECONSTRUCTION' if is_match else '[FAIL] MISMATCH'}")
+
         result = {
             "operand_A": A,
             "operand_A_str": str(A),
@@ -773,9 +821,16 @@ class JanusMasterOrchestrator:
             "res_A": res_A,
             "res_B": res_B,
             "res_P": res_P,
+            "radix16_prod": radix16_prod,
+            "optical_residues_a": res_A,
+            "optical_residues_b": res_B,
+            "optical_product_residues": res_P,
+            "moduli": moduli,
+            "moduli_16": moduli,
             "reconstructed_product": effective_prod,
             "reconstructed_product_str": str(effective_prod),
             "is_match": is_match,
+            "crt_steps": crt_steps,
         }
 
         if print_output:
@@ -786,11 +841,14 @@ class JanusMasterOrchestrator:
             hex_prod = f"0x{expected_product:016X}" if expected_product >= 0 else f"-0x{abs(expected_product):016X}"
             print(f"  Expected Product Hex          : {hex_prod}")
             print("\n  [1] Spatial Residue Domain Execution (16 Optical Tiles):")
-            print("  -------------------------------------------------------------")
-            print("  Tile | Modulus | r_A | r_B | r_P = (r_A * r_B) mod m | Optical Path")
-            print("  -----+---------+-----+-----+-------------------------+--------------")
+            print("  ------------------------------------------------------------------------------------------------------")
+            print("  Tile | Modulus  | r_A | r_B | r_P = (A*B)%m | Radix-16 [rH, rL] | 16-Tree Optical Allocation (<= 16)")
+            print("  -----+----------+-----+-----+---------------+-------------------+-----------------------------------")
             for idx, (m, ra, rb, rp) in enumerate(zip(moduli, res_A, res_B, res_P)):
-                print(f"   {idx:02d}  |   {m:3d}   | {ra:3d} | {rb:3d} |           {rp:3d}           | Waveguide #{rp}")
+                m_str = f"{m} (F2)" if m == 257 else f"{m:3d}     "
+                rph, rpl = rp // 16, rp % 16
+                print(f"   {idx:02d}  | {m_str} | {ra:3d} | {rb:3d} |      {rp:3d}      |      [{rph:2d}, {rpl:2d}]     | Tree H: WG #{rph:2d} | Tree L: WG #{rpl:2d}")
+            print("  ------------------------------------------------------------------------------------------------------")
 
             print("\n  [2] CRT Adder Tree Global Reconstruction:")
             print("  -------------------------------------------------------------")

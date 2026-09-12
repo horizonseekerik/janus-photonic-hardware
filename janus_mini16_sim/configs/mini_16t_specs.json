@@ -225,7 +225,7 @@
   "T_latency_total": 9.63e-10,
   "N_pipeline_depth": 96,
   "t_reconfig_window": 0.0001,
-  "m_max": 256,
+  "m_max": 257,
   "m_bits": 8,
   "k_int4": 1,
   "k_int8": 2,
