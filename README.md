@@ -322,7 +322,127 @@ The web platform ([janus-photonic-hardware.vercel.app](https://janus-photonic-ha
 
 ---
 
-## 💻 Quick Start & Developer Instructions
+## 🛠️ Complete Software & Toolchain Prerequisites
+
+Project JANUS combines multi-physics photonic wave mechanics, 3D FEM thermal diffusion, optoelectronic circuit SPICE, digital CMOS RTL logic, and SMT formal theorem proving. Below is the complete layer-by-layer dependency breakdown:
+
+### 🧩 Tier-by-Tier Dependency Matrix
+
+| Tier / Subsystem | Tool / Engine | Purpose in Project JANUS | Supported OS | Official Link / Docs |
+|---|---|---|---|---|
+| **Environment** | **Miniconda / Conda** | Python virtual environment management & binary package resolution | Windows, Linux, macOS | [Miniconda Docs](https://docs.conda.io/en/latest/miniconda.html) |
+| **Tier 1 (Optics)** | **MEEP (Python API)** | Finite-Difference Time-Domain (FDTD) 3D Maxwell curl solver for optical couplers, crossings, and pulse routing | Linux, WSL (Ubuntu), macOS | [MEEP FDTD Docs](https://meep.readthedocs.io/en/latest/) |
+| **Tier 1 (Optics)** | **MPB (Photonic Bands)** | Frequency-domain vector Maxwell eigensolver for optical modes, $n_{\text{eff}}$, and $L_\pi$ | Linux, WSL (Ubuntu), macOS | [MPB Documentation](https://mpb.readthedocs.io/en/latest/) |
+| **Tier 2 (Thermal)** | **Elmer FEM** | 3D finite-element multiphysics solver for transient and steady-state thermal diffusion across packaging strata | Linux, WSL, Windows | [Elmer FEM Official](https://www.csc.fi/web/elmer) |
+| **Tier 2 (Thermal)** | **Gmsh** | 3D tetrahedral finite-element mesh generator for heterogeneous chiplet geometries | Linux, Windows, macOS | [Gmsh Reference](https://gmsh.info/) |
+| **Tier 2 (Thermal)** | **SciPy (BDF Solver)** | 1D multi-layer finite-volume stiff ODE backward differentiation solver (built-in physical fallback) | All Platforms | [SciPy solve_ivp](https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html) |
+| **Tier 3 (Circuits)**| **SciPy & NumPy** | 3rd-order Bessel-Thomson anti-aliasing filter, Gustavsen vector rational pole-fitting, and PRBS-7 eye diagrams | All Platforms | [SciPy Signal Docs](https://docs.scipy.org/doc/scipy/reference/signal.html) |
+| **Tier 3 (Circuits)**| **Xyce / Ngspice (Opt)** | Open-source parallel analog circuit simulator for StrongARM regenerative latch transient analysis | Linux, Windows, macOS | [Xyce SPICE Guide](https://xyce.sandia.gov/) |
+| **Tier 4 (Digital)** | **Icarus Verilog (`iverilog`)** | IEEE-1364 standard-compliant Verilog HDL compiler & simulation engine (`vvp`) for CRT reconstruction tree | Windows, Linux, macOS | [Icarus Verilog Official](http://iverilog.icarus.com/) |
+| **Tier 4 (Digital)** | **Cocotb** | Python-based coroutine cycle-accurate testbench verification environment for Verilog RTL | Windows, Linux, macOS | [Cocotb Documentation](https://docs.cocotb.org/en/stable/) |
+| **Tier 5 (Formal)**  | **Z3 Theorem Prover** | Microsoft Research SMT solver for formal mathematical proofs (group isomorphism, non-overflow, bijectivity) | All Platforms | [Z3 SMT Solver GitHub](https://github.com/Z3Prover/z3) |
+| **Web / Dashboard**  | **Node.js (Optional)** | Syntax validation and tooling for single-page WebGL interactive dashboard | Windows, Linux, macOS | [Node.js Official](https://nodejs.org/) |
+
+---
+
+## 📦 Step-by-Step Installation Guide
+
+### Option 1: Quickstart (Windows Native & Linux / macOS)
+*Ideal for Web Dashboard, REST APIs, AI Benchmarks, Z3 Formal Proofs, and Verilog RTL Simulation:*
+
+1. **Install Miniconda:**
+   - Download the installer from the [Official Miniconda Page](https://docs.conda.io/en/latest/miniconda.html).
+   - Verify installation: `conda --version`
+
+2. **Create and Activate the Virtual Environment:**
+   ```bash
+   conda create -n janus_env python=3.11 -y
+   conda activate janus_env
+   ```
+
+3. **Install Icarus Verilog:**
+   - **Windows:** Download the installer from [bleyer.org/icarus](https://bleyer.org/icarus/) or install via Chocolatey:
+     ```powershell
+     choco install icarus-verilog
+     ```
+     *(Ensure `C:\iverilog\bin` is added to your System `PATH`)*.
+   - **Ubuntu / Debian:**
+     ```bash
+     sudo apt-get update && sudo apt-get install -y iverilog
+     ```
+   - **macOS (Homebrew):**
+     ```bash
+     brew install icarus-verilog
+     ```
+
+4. **Clone Repository & Install Python Dependencies:**
+   ```bash
+   git clone https://github.com/horizonseekerik/janus-photonic-hardware.git
+   cd janus-photonic-hardware
+   pip install -r requirements.txt
+   ```
+
+---
+
+### Option 2: Full Multi-Physics Scientific Stack (Linux / WSL 2 Ubuntu)
+*Required for live MEEP 3D FDTD Maxwell solvers, MPB eigensolvers, and Elmer 3D FEM:*
+
+1. **Enable WSL 2 (Windows Users):**
+   ```powershell
+   wsl --install -d Ubuntu
+   ```
+   Launch the Ubuntu terminal: `wsl -d Ubuntu`.
+
+2. **Install MEEP & MPB Photonic Solvers:**
+   - **Method A (Ubuntu Native APT - Recommended):**
+     ```bash
+     sudo apt-get update
+     sudo apt-get install -y meep libmeep-dev python3-meep mpb
+     ```
+   - **Method B (Conda-Forge):**
+     ```bash
+     conda create -n janus_meep -c conda-forge pymeep mpb python=3.11 -y
+     conda activate janus_meep
+     ```
+
+3. **Install Elmer FEM & Gmsh (3D Heat Diffusion):**
+   ```bash
+   sudo apt-get install -y gmsh
+   # On Ubuntu / Debian:
+   sudo apt-add-repository -y ppa:elmer-csc-ubuntu/elmer-csc-ppa
+   sudo apt-get update
+   sudo apt-get install -y elmerfem-csc
+   ```
+   *(Note: If Elmer binaries are absent, JANUS automatically executes its 1D multi-layer finite-volume BDF ODE heat diffusion solver).*
+
+4. **Install Python Scientific Stack & Verification Engines:**
+   ```bash
+   sudo apt-get install -y iverilog python3-pip python3-numpy python3-scipy python3-matplotlib
+   pip3 install -r requirements.txt
+   ```
+
+---
+
+### 🔍 Toolchain Health Check
+
+Verify your installed toolchain with this diagnostic checklist:
+
+```bash
+# 1. Check Python & Core Math
+python -c "import numpy, scipy, matplotlib, z3; print('Scientific Core: OK, Z3 Version:', z3.__version__)"
+
+# 2. Check Icarus Verilog RTL Compiler
+iverilog -V
+
+# 3. Check MEEP FDTD Photonic Solver (Linux/WSL)
+python3 -c "import meep as mp; print('MEEP FDTD Version:', mp.__version__)"
+
+# 4. Check Elmer FEM Solver (Optional)
+ElmerSolver --version
+```
+
+## 💻 Quick Start & Running Tests
+
 
 ### 1. Prerequisites
 * Python 3.10+ (Windows, macOS, or Linux / WSL)

@@ -115,6 +115,27 @@ This directory houses the **verified 5-tier multi-physics co-simulation framewor
 
 ---
 
+## 🛠️ Software & Toolchain Prerequisites
+
+| Subsystem | Tool | Purpose | Install Guide / Link |
+|---|---|---|---|
+| **Optics (Tier 1)** | **MEEP & MPB** | FDTD Maxwell & vector eigensolver | `sudo apt-get install meep python3-meep mpb` or [Conda-forge](https://meep.readthedocs.io/) |
+| **Thermal (Tier 2)** | **Elmer FEM & Gmsh** | 3D tetrahedral heat conduction | `sudo apt-get install gmsh elmerfem-csc` or [ElmerCSC](https://www.csc.fi/web/elmer) |
+| **Circuit (Tier 3)** | **SciPy & SPICE** | 100 GHz Bessel filtering & eye diagram | `pip install scipy numpy matplotlib` |
+| **Digital (Tier 4)** | **Icarus Verilog & Cocotb** | 12-stage CRT reconstruction RTL verification | `sudo apt-get install iverilog` + `pip install cocotb` |
+| **Math (Tier 5)** | **Microsoft Z3 SMT** | 5 formal mathematical theorem proofs | `pip install z3-solver` |
+
+### Environment Setup
+
+```bash
+# Create and activate conda environment
+conda create -n janus_env python=3.11 -y
+conda activate janus_env
+
+# Install Python dependencies
+pip install -r ../requirements.txt
+```
+
 ## 📦 Quickstart & Usage
 
 ### Prerequisites
